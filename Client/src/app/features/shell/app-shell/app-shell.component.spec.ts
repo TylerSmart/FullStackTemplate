@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { APP_NAME } from '../../app.branding';
-import { AccountService } from '../../core/services/account/account.service';
-import { AuthService } from '../../core/services/auth/auth.service';
-import { ThemeService } from '../../core/services/theme/theme.service';
+import { APP_NAME } from '../../../app.branding';
+import { AccountService } from '../../../core/services/account/account.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
+import { ThemeService } from '../../../core/services/theme/theme.service';
 import { AppShellComponent } from './app-shell.component';
 
 describe('AppShellComponent', () => {

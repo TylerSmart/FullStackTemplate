@@ -5,10 +5,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { APP_BRAND_ICON, APP_NAME } from '../../app.branding';
-import { AccountService } from '../../core/services/account/account.service';
-import { AuthService } from '../../core/services/auth/auth.service';
-import { ThemeMode, ThemeService } from '../../core/services/theme/theme.service';
+import { APP_BRAND_ICON, APP_NAME } from '../../../app.branding';
+import { AccountService } from '../../../core/services/account/account.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
+import { ThemeMode, ThemeService } from '../../../core/services/theme/theme.service';
 
 const THEME_ICONS: Record<ThemeMode, string> = {
   light: 'light_mode',

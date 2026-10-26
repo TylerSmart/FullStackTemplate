@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
-import { FoodItemDto, StoreAisleDto } from '../../core/models/food-catalog.models';
-import { FoodCatalogService } from '../../core/services/food-catalog/food-catalog.service';
+import { FoodItemDto, StoreAisleDto } from '../../../core/models/food-catalog.models';
+import { FoodCatalogService } from '../../../core/services/food-catalog/food-catalog.service';
 import { FoodCatalogComponent } from './food-catalog.component';
 
 describe('FoodCatalogComponent', () => {

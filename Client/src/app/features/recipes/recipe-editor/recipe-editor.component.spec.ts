@@ -3,10 +3,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { FoodItemDto } from '../../core/models/food-catalog.models';
-import { RecipeDetailDto, RecipeSummaryDto } from '../../core/models/recipe.models';
-import { FoodCatalogService } from '../../core/services/food-catalog/food-catalog.service';
-import { RecipeService } from '../../core/services/recipe/recipe.service';
+import { FoodItemDto } from '../../../core/models/food-catalog.models';
+import { RecipeDetailDto, RecipeSummaryDto } from '../../../core/models/recipe.models';
+import { FoodCatalogService } from '../../../core/services/food-catalog/food-catalog.service';
+import { RecipeService } from '../../../core/services/recipe/recipe.service';
 import { RecipeEditorComponent } from './recipe-editor.component';
 
 describe('RecipeEditorComponent', () => {

@@ -19,14 +19,14 @@ import {
   RecipeStepDto,
   SubRecipePreviewDto,
   UnitSystem,
-} from '../../core/models/recipe.models';
-import { RecipeService } from '../../core/services/recipe/recipe.service';
+} from '../../../core/models/recipe.models';
+import { RecipeService } from '../../../core/services/recipe/recipe.service';
 import {
   FormattedQuantityResult,
   formatDuration,
   scaleAndConvert,
-} from '../../core/utils/culinary-math';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+} from '../../../core/utils/culinary-math';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 export interface ScaledIngredientItem {
   ingredient: RecipeIngredientDto;

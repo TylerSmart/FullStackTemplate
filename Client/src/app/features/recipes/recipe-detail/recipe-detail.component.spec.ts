@@ -3,8 +3,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { RecipeDetailDto } from '../../core/models/recipe.models';
-import { RecipeService } from '../../core/services/recipe/recipe.service';
+import { RecipeDetailDto } from '../../../core/models/recipe.models';
+import { RecipeService } from '../../../core/services/recipe/recipe.service';
 import { RecipeDetailComponent } from './recipe-detail.component';
 
 describe('RecipeDetailComponent', () => {

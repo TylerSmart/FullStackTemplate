@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/shell/app-shell.component').then((m) => m.AppShellComponent),
+      import('./features/shell/app-shell/app-shell.component').then((m) => m.AppShellComponent),
     canActivate: [authGuard],
     children: [
       {
@@ -21,27 +21,35 @@ export const routes: Routes = [
       {
         path: 'recipes',
         loadComponent: () =>
-          import('./features/recipes/recipe-list.component').then((m) => m.RecipeListComponent),
+          import('./features/recipes/recipe-list/recipe-list.component').then(
+            (m) => m.RecipeListComponent,
+          ),
       },
       {
         path: 'recipes/new',
         loadComponent: () =>
-          import('./features/recipes/recipe-editor.component').then((m) => m.RecipeEditorComponent),
+          import('./features/recipes/recipe-editor/recipe-editor.component').then(
+            (m) => m.RecipeEditorComponent,
+          ),
       },
       {
         path: 'recipes/:id',
         loadComponent: () =>
-          import('./features/recipes/recipe-detail.component').then((m) => m.RecipeDetailComponent),
+          import('./features/recipes/recipe-detail/recipe-detail.component').then(
+            (m) => m.RecipeDetailComponent,
+          ),
       },
       {
         path: 'recipes/:id/edit',
         loadComponent: () =>
-          import('./features/recipes/recipe-editor.component').then((m) => m.RecipeEditorComponent),
+          import('./features/recipes/recipe-editor/recipe-editor.component').then(
+            (m) => m.RecipeEditorComponent,
+          ),
       },
       {
         path: 'catalog',
         loadComponent: () =>
-          import('./features/food-catalog/food-catalog.component').then(
+          import('./features/food-catalog/food-catalog/food-catalog.component').then(
             (m) => m.FoodCatalogComponent,
           ),
       },

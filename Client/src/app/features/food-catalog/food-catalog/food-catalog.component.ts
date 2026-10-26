@@ -12,10 +12,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FoodItemDto, StoreAisleDto } from '../../core/models/food-catalog.models';
-import { FoodCatalogService } from '../../core/services/food-catalog/food-catalog.service';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { FoodItemDialogComponent } from './food-item-dialog/food-item-dialog.component';
+import { FoodItemDto, StoreAisleDto } from '../../../core/models/food-catalog.models';
+import { FoodCatalogService } from '../../../core/services/food-catalog/food-catalog.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { FoodItemDialogComponent } from '../food-item-dialog/food-item-dialog.component';
 
 @Component({
   imports: [

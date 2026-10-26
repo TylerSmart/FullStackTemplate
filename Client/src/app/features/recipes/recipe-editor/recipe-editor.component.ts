@@ -16,7 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FoodItemDto } from '../../core/models/food-catalog.models';
+import { FoodItemDto } from '../../../core/models/food-catalog.models';
 import {
   MeasurementUnit,
   RecipeDetailDto,
@@ -26,10 +26,10 @@ import {
   RecipeStepInput,
   RecipeSummaryDto,
   UpsertRecipeRequest,
-} from '../../core/models/recipe.models';
-import { FoodCatalogService } from '../../core/services/food-catalog/food-catalog.service';
-import { RecipeService } from '../../core/services/recipe/recipe.service';
-import { FoodItemDialogComponent } from '../food-catalog/food-item-dialog/food-item-dialog.component';
+} from '../../../core/models/recipe.models';
+import { FoodCatalogService } from '../../../core/services/food-catalog/food-catalog.service';
+import { RecipeService } from '../../../core/services/recipe/recipe.service';
+import { FoodItemDialogComponent } from '../../food-catalog/food-item-dialog/food-item-dialog.component';
 
 interface IngredientFormValue {
   id?: string | null;

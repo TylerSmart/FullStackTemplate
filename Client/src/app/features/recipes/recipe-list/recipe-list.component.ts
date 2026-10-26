@@ -17,9 +17,9 @@ import {
   RecipeQueryParameters,
   RecipeStatus,
   RecipeSummaryDto,
-} from '../../core/models/recipe.models';
-import { RecipeService } from '../../core/services/recipe/recipe.service';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+} from '../../../core/models/recipe.models';
+import { RecipeService } from '../../../core/services/recipe/recipe.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   imports: [

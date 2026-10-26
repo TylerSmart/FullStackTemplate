@@ -1,6 +1,6 @@
-# Contributing to FullStackTemplate
+# Contributing Guide
 
-Thank you for your interest in contributing to FullStackTemplate! We welcome contributions from everyone—whether you are fixing bugs, proposing new features, improving documentation, or testing out the application.
+Thank you for your interest in contributing! Whether you are fixing bugs, proposing new features, improving documentation, or testing out the application, this guide covers our local development workflow and standards.
 
 ---
 
@@ -8,14 +8,12 @@ Thank you for your interest in contributing to FullStackTemplate! We welcome con
 
 1. [Code of Conduct](#code-of-conduct)
 2. [How Can I Contribute?](#how-can-i-contribute)
-   - [Reporting Bugs](#reporting-bugs)
-   - [Suggesting Enhancements](#suggesting-enhancements)
-   - [Pull Requests](#pull-requests)
 3. [Local Development Environment](#local-development-environment)
    - [Prerequisites](#prerequisites)
    - [Setting Up Local Infrastructure](#setting-up-local-infrastructure)
    - [Running the Backend (API)](#running-the-backend-api)
    - [Running the Frontend (Angular)](#running-the-frontend-angular)
+   - [VS Code Watch & Hot Reload](#vs-code-watch--hot-reload)
 4. [Database Migrations (EF Core)](#database-migrations-ef-core)
 5. [Code Quality & Standards](#code-quality--standards)
    - [Formatting & Linting](#formatting--linting)
@@ -32,32 +30,10 @@ We are committed to providing a welcoming, inclusive, and harassment-free enviro
 
 ## How Can I Contribute?
 
-### Reporting Bugs
-
-Before creating a bug report, please check existing issues to ensure the bug hasn't already been reported. When filing a bug report, include:
-
-- **A clear, descriptive title**.
-- **Steps to reproduce** the issue step by step.
-- **Expected behavior** vs. **actual behavior**.
-- **Screenshots or console errors** if applicable.
-- **Environment details**: Browser, operating system, and application version or commit SHA.
-
-### Suggesting Enhancements
-
-Feature requests are tracked as GitHub issues. When suggesting an enhancement, please explain:
-
-- The problem or use case you are trying to solve.
-- The proposed solution or behavior.
-- Any alternative approaches or workarounds you considered.
-
-### Pull Requests
-
-1. **Fork the repository** to your own GitHub account.
-2. **Clone your fork** and create a feature branch off `main` (`git checkout -b feature/my-new-feature`).
-3. Make your changes following the [Code Quality & Standards](#code-quality--standards).
-4. Verify that existing and new tests pass (`dotnet test` and `npm test`).
-5. Commit your changes with clear, descriptive commit messages ([Conventional Commits](#commit--branch-guidelines) preferred).
-6. Push to your fork and submit a Pull Request targeting `main`.
+1. **Create a feature branch** off `main` (`git checkout -b feature/my-new-feature`).
+2. Make your changes following the [Code Quality & Standards](#code-quality--standards) and agent rules in [`.agents/AGENTS.md`](../.agents/AGENTS.md).
+3. Verify that all backend and frontend builds, linters, and test suites pass.
+4. Commit your changes with clear [Conventional Commits](#commit--branch-guidelines) messages and open a Pull Request targeting `main`.
 
 ---
 
@@ -79,65 +55,74 @@ Run the setup script from the repository root:
 .\scripts\ensure-local-infra.ps1
 ```
 
-This starts the SQL Server container (defined in `docker-compose.yml`) and ensures the `FullStackTemplate` database exists.
+This starts the SQL Server container (defined in `docker-compose.yml`) and ensures the configured local database exists.
 
 ### Running the Backend (API)
 
 ```powershell
-dotnet run --project FullStackTemplate.API
+# Standard run
+dotnet run --project API/App.API.csproj
+
+# Hot-reload file watching
+dotnet watch --project API/App.API.csproj run
 ```
 
-The API will start at `https://localhost:7080` / `http://localhost:5000` (or the ports configured in `launchSettings.json`). OpenAPI / Scalar documentation is accessible at `/scalar/v1`.
+The API listens on `http://localhost:5041` (and `https://localhost:7127` when using the `https` profile). Interactive Scalar API documentation is available at `http://localhost:5041/api/scalar` (OpenAPI JSON at `/api/openapi/v1.json`).
 
 ### Running the Frontend (Angular)
 
 ```powershell
-cd FullStackTemplate.Client
+cd Client
 npm install
 npm start
 ```
 
-The Angular dev server will start at `http://localhost:4200/` with hot-reload enabled.
+The Angular dev server starts at `http://localhost:4200/` and proxies `/api` requests to `http://localhost:5041`.
+
+### VS Code Watch & Hot Reload
+
+Open the repository root in VS Code and launch **`Full Stack (watch)`** from the Run and Debug panel (`.vscode/launch.json`), or run the `api: watch` and `client: start` tasks from `.vscode/tasks.json`. To step through C# breakpoints while `dotnet watch` is running, run **`Attach to API (.NET)`**.
 
 ---
 
 ## Database Migrations (EF Core)
 
-Schema definitions live in `FullStackTemplateDbContext` (`FullStackTemplate.Data`).
-
-Restore the EF CLI tool once per workstation:
+Schema definitions live in `AppDbContext` (`Data/`). Because `Data/` includes `AppDbContextFactory`, always run `dotnet ef` targeting `--project Data/App.Data.csproj` directly (no `--startup-project` needed):
 
 ```powershell
 dotnet tool restore
 ```
 
-All commands below should be executed from the repository root:
+All commands below run from the repository root:
 
 - **Add a new migration**:
   ```powershell
-  dotnet ef migrations add <MigrationName> --project FullStackTemplate.Data --startup-project FullStackTemplate.API
+  dotnet ef migrations add <MigrationName> --project Data/App.Data.csproj
+  dotnet csharpier format Data/Migrations
   ```
 
 - **Apply pending migrations**:
   ```powershell
-  dotnet ef database update --project FullStackTemplate.Data --startup-project FullStackTemplate.API
+  dotnet ef database update --project Data/App.Data.csproj
   ```
 
 - **List applied migrations**:
   ```powershell
-  dotnet ef migrations list --project FullStackTemplate.Data --startup-project FullStackTemplate.API
+  dotnet ef migrations list --project Data/App.Data.csproj
   ```
 
 - **Revert the last migration**:
   ```powershell
-  dotnet ef database update <PreviousMigrationName> --project FullStackTemplate.Data --startup-project FullStackTemplate.API
-  dotnet ef migrations remove --project FullStackTemplate.Data --startup-project FullStackTemplate.API
+  dotnet ef database update <PreviousMigrationName> --project Data/App.Data.csproj
+  dotnet ef migrations remove --project Data/App.Data.csproj
   ```
 
 - **Generate raw SQL script**:
   ```powershell
-  dotnet ef migrations script --project FullStackTemplate.Data --startup-project FullStackTemplate.API --output FullStackTemplate.sql
+  dotnet ef migrations script --project Data/App.Data.csproj --output schema.sql
   ```
+
+Always commit generated files in `Data/Migrations/` in the same commit as the entity/configuration changes.
 
 ---
 
@@ -145,49 +130,41 @@ All commands below should be executed from the repository root:
 
 ### Formatting & Linting
 
-We maintain consistent formatting via automated tooling:
-
-- **Backend (.NET)**: Formatted using [CSharpier](https://csharpier.com/):
+- **Backend (.NET)** — Formatted using [CSharpier](https://csharpier.com/):
   ```powershell
   dotnet tool restore
   dotnet csharpier format .
   ```
-- **Frontend (Angular)**: Formatted and linted using Prettier and ESLint:
+- **Frontend (Angular)** — Formatted and linted using Prettier and ESLint (note: all Angular components must use external `.html` and `.scss` files, never inline templates/styles):
   ```powershell
-  cd FullStackTemplate.Client
+  cd Client
   npm run lint:fix
   npm run format
   ```
 
 ### Running Tests
 
-Ensure all test suites pass before submitting a pull request:
+`.NET 10` uses `Microsoft.Testing.Platform`, which requires `--project` when running a specific test `.csproj`:
 
-- **Backend Unit & Integration Tests**:
+- **Backend Build & Tests** (from repo root):
   ```powershell
-  dotnet test
+  dotnet build App.slnx
+  dotnet test --project Tests/Core.UnitTests/App.Core.UnitTests.csproj
+  dotnet test --project Tests/Infrastructure.UnitTests/App.Infrastructure.UnitTests.csproj
+  dotnet test --project Tests/API.IntegrationTests/App.API.IntegrationTests.csproj
+  dotnet test --project Tests/Client.E2ETests/App.Client.E2ETests.csproj
   ```
 
-- **Frontend Unit Tests**:
+- **Frontend Build & Unit Tests** (from `Client/`):
   ```powershell
-  cd FullStackTemplate.Client
-  npm test
+  npm run lint
+  npm run build:production
+  npm test -- --watch=false
   ```
 
 ---
 
 ## Commit & Branch Guidelines
 
-- **Branch Naming**:
-  - `feature/<short-description>`
-  - `fix/<short-description>`
-  - `docs/<short-description>`
-- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/):
-  - `feat: add task due date filtering`
-  - `fix: resolve token refresh race condition`
-  - `docs: update OIDC setup guide for Keycloak`
-  - `chore: update dependencies`
-
----
-
-*Thank you for contributing to FullStackTemplate!*
+- **Branch Naming**: `feature/<short-description>`, `fix/<short-description>`, `docs/<short-description>`, `chore/<short-description>`
+- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).

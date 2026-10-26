@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Documentation/">
     <File Path="README.md" />
+    <File Path="AGENTS.md" />
     <File Path="docs/template-usage.md" />
     <File Path="docs/template-sync.md" />
     <File Path="docs/contributing.md" />

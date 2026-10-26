@@ -190,7 +190,7 @@ volumes:
 > ```yaml
 > build:
 >   context: .
->   dockerfile: FullStackTemplate.API/Dockerfile
+>   dockerfile: API/Dockerfile
 > ```
 
 ### 4. Launch the Application
@@ -253,7 +253,7 @@ FullStackTemplate uses Entity Framework Core with automatic startup migrations:
 
 1. When the `full-stack-template-api` container boots, it checks the database specified in `ConnectionStrings__DefaultConnection`.
 2. If the `FullStackTemplate` database does not exist, it creates it automatically.
-3. It evaluates pending migrations in `FullStackTemplate.Data/Migrations` and executes any unapplied schema updates.
+3. It evaluates pending migrations in `Data/Migrations` and executes any unapplied schema updates.
 4. Database tables, indexes, CRDT snapshots, revision history, and user accounts are fully managed without requiring manual SQL script execution.
 
 All database files reside inside `/var/opt/mssql` inside the `sqlserver` container and are persisted across updates in the `sqlserver_data` Docker volume.

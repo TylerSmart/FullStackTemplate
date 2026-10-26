@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "Full Debug",
+    "Projects": [
+      {
+        "Path": "API\\App.API.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "Client\\App.Client.esproj",
+        "Action": "Start",
+        "DebugTarget": "launch"
+      }
+    ]
+  }
+]

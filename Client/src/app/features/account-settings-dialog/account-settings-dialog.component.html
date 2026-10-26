@@ -27,7 +27,7 @@
         <button mat-button type="button" (click)="loadAccount()">Retry</button>
       </div>
     } @else {
-      <mat-tab-group animationDuration="150ms" class="account-tabs">
+      <mat-tab-group animationDuration="150ms" [dynamicHeight]="true" class="account-tabs">
         <!-- Profile Tab -->
         <mat-tab label="Profile">
           <form class="tab-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">

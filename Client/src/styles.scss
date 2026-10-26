@@ -96,7 +96,13 @@ textarea,
   font-family: var(--app-font-family);
 }
 
-.auth-card .mat-mdc-tab-body-content {
+.auth-card .mat-mdc-tab-body-content,
+.account-tabs .mat-mdc-tab-body-content,
+.account-tabs .mat-mdc-tab-body.mat-mdc-tab-body-active {
+  overflow: hidden;
+}
+
+.account-settings-dialog-panel .mat-mdc-dialog-surface {
   overflow: hidden;
 }
 

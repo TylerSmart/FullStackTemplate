@@ -12,6 +12,10 @@
   margin: 0;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 
+  &::before {
+    display: none;
+  }
+
   .header-title-group {
     display: flex;
     align-items: center;
@@ -71,7 +75,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 16px;
+  padding: 16px 4px 8px;
 }
 
 .full-width {

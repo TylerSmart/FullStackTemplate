@@ -1,34 +1,26 @@
-# FullStackTemplate (.NET 10 + Angular 22)
+# LocalRoast
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Publish Docker](https://github.com/TylerSmart/FullStackTemplate/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/TylerSmart/FullStackTemplate/actions/workflows/docker-publish.yml)
+[![Publish Docker](https://github.com/TylerSmart/LocalRoast/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/TylerSmart/LocalRoast/actions/workflows/docker-publish.yml)
 
-**FullStackTemplate** is a production-ready, self-hostable full-stack starter template built with **ASP.NET Core 10**, **Entity Framework Core (SQL Server)**, and **Angular 22 (Material 3)**. It provides authentication (local JWT + external OIDC/SSO), automatic database migrations, entity auditing, customizable theming, multi-arch Docker packaging, and NAS/homelab deployment guides out of the box.
+**LocalRoast** is an open-source, self-hosted **household recipe vault, local-AI multimodal ingestion engine, meal planning calendar, and real-time shopping list app** built for **TrueNAS Scale** and homelab environments.
 
-> [!IMPORTANT]
-> **Starting a new project from this template?**
-> Follow the **[Template Usage Guide](docs/template-usage.md)** to customize branding and assign a **randomized external host port**, and see **[Syncing Upstream Template Changes](docs/template-sync.md)** to merge future template updates into forks.
+Ingest recipes from web URLs, cookbook camera photos, PDFs, or pasted text via a local LLM (`Ollama` or OpenAI-compatible `/v1` host) with a Side-by-Side Review Inbox; connect external AI assistants over an embedded **MCP server** (`/api/mcp`); plan real-world weeks of meals (including leftovers and an "On-Deck" flexible queue); co-shop in real time with aisle-ordered lists; and cook hands-free in **Cook Mode**.
+
+- **[Product Requirements Document (PRD)](docs/prd.md)** — Full domain model, ingestion & MCP architecture, user workflows, and milestone roadmap.
+- **[TrueNAS Scale Deployment Guide](docs/deployment/truenas-scale.md)** — Dataset setup, Docker Compose, and Nginx Proxy Manager configuration.
+- **[Contributing & Local Development Guide](docs/contributing.md)** — Local Docker SQL Server setup, EF migrations, and testing commands.
 
 ---
 
-## What's Included ("The Bones")
+## Core Capabilities
 
-- **Authentication & Single Sign-On (SSO / OIDC)**:
-  - Local email/password registration & login with PBKDF2-SHA256 password hashing and JWT bearer tokens.
-  - External OIDC / OAuth 2.0 support (Google, Authentik, Keycloak, Microsoft Entra ID) with automatic account linking and user provisioning via `DualBearerAuthenticationHandler`.
-- **Clean Architecture & EF Core Data Layer**:
-  - Separated into `API`, `Core`, `Data`, and `Infrastructure` projects (`App.*` namespaces).
-  - Automatic startup database creation & schema migration (`db.Database.Migrate()`).
-  - Automatic `CreatedAt`/`CreatedBy`/`ModifiedAt`/`ModifiedBy` auditing via `IAuditable` and `AuditSaveChangesInterceptor`.
-- **Dynamic Material 3 Theming**:
-  - Light, Dark, and System theme modes with a live **Theme Customizer Dialog** supporting custom primary/secondary/tertiary color palettes and typography persisted in `localStorage`.
-- **Sample End-to-End CRUD Vertical Slice (`TodoItem`)**:
-  - Reference implementation spanning Entity, EF Core Configuration, Core Service Interface, Data Service with ownership checks, REST Controller (`TodosController`), OpenAPI/Scalar docs, Angular Service, Dashboard UI, and Unit/Integration Tests.
-- **Unified Single-Container Deployment**:
-  - Multi-stage `Dockerfile` that compiles the Angular SPA into the ASP.NET Core `wwwroot` directory and publishes multi-arch (`linux/amd64`, `linux/arm64`) images to GitHub Container Registry (GHCR).
-- **Developer Experience & Quality Gates**:
-  - Pre-commit hooks via Husky + `lint-staged` running ESLint, Prettier, and CSharpier automatically.
-  - Local SQL Server Docker container orchestration (`scripts/ensure-local-infra.ps1`).
+- **Multimodal Local-LLM Ingestion & Review Inbox:** Queue Web URLs, raw text, multi-page mobile camera cookbook scans, and PDFs into SQL Server (resilient even when your GPU/Ollama host is asleep), extract structured ingredients/steps/timers/tags, download hero photos locally to prevent link rot, and verify in a Side-by-Side Review screen.
+- **Embedded MCP Server (`/api/mcp`):** Authenticate Claude Desktop, Antigravity, Open WebUI, or voice assistants via Personal Access Tokens (`lr_pat_...`) to search your cookbook, ingest/save recipes, plan weekly meals, and update shopping lists.
+- **Canonical Food Catalog & Culinary Math:** Structured quantities, ranges, units, section headers, and linked Sub-Recipes backed by a shared `FoodItem` dictionary (default grocery aisles, aliases, and Pantry Staples) for accurate scaling and US/Metric conversion.
+- **Flexible Household Meal Planning:** Multi-dish `Breakfast`, `Lunch`, `Dinner`, and `Snack / Prep` calendar slots, custom serving overrides, `Leftovers` tracking (excluded from shopping math), freeform notes, an **"On-Deck"** weekly tray, and reusable Week Templates.
+- **Real-Time Smart Shopping Lists:** Multiple named lists (*Weekly*, *Costco*, *Trader Joe's*) with unit consolidation, recipe provenance badges, auto-separated Pantry Staples, custom Store Aisle walking layouts, and live **SignalR** multi-phone sync.
+- **Hands-Free Cook Mode & Cook Logs:** Screen wake-lock (`navigator.wakeLock`), large step-by-step cards with inline scaled ingredient callouts, floating multi-timers, *"I Made This!"* Cook Logs (ratings, tweak notes, photos), **"Use Up Ingredients"** fridge matching, and revocable `/share/<token>` links.
 
 ---
 
@@ -37,48 +29,51 @@
 | Layer | Technology |
 |---|---|
 | **Frontend** | [Angular 22](https://angular.dev/), TypeScript, Angular Material 3, RxJS, Signals |
-| **Backend** | [ASP.NET Core 10](https://dotnet.microsoft.com/), [Scalar](https://scalar.com/) OpenAPI, Serilog |
+| **Backend** | [ASP.NET Core 10](https://dotnet.microsoft.com/), SignalR, Model Context Protocol (`/api/mcp`), [Scalar](https://scalar.com/) OpenAPI (`/api/scalar`), Serilog |
+| **AI / Ingestion** | Local-first `Ollama` & OpenAI-compatible (`/v1`) LLM/Vision integration |
 | **Data & ORM** | [Microsoft SQL Server 2022](https://www.microsoft.com/sql-server), Entity Framework Core 10 |
-| **Testing** | MSTest + `WebApplicationFactory` (In-Memory DB Integration Tests), Vitest (Angular Unit Tests), Playwright (E2E) |
+| **Testing** | MSTest (`Microsoft.Testing.Platform`) + `WebApplicationFactory` (InMemory DB), Vitest, Playwright (E2E) |
 | **Packaging** | Docker, Docker Compose, Multi-Arch Container Images via GitHub Actions |
 
 ---
 
-## Quick Start (Docker)
-
-You can launch the full stack in seconds using Docker Compose:
+## Quick Start (Docker Compose / TrueNAS Scale)
 
 ```yaml
-name: full-stack-template-prod
+name: local-roast-prod
 
 services:
   api:
-    image: ghcr.io/tylersmart/fullstacktemplate:latest
-    container_name: full-stack-template-api
+    image: ghcr.io/tylersmart/localroast:latest
+    container_name: local-roast-api
     restart: unless-stopped
     ports:
-      # Randomized host port (62949 -> 8080) to avoid port collisions across multiple apps on your NAS/server.
-      # The template initialization script (docs/template-usage.md) automatically generates a unique random port per project.
-      - "62949:8080"
+      - "62781:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=FullStackTemplate;User Id=sa;Password=YourStrongPassword123!_MustIncludeCaps;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=LocalRoast;User Id=sa;Password=YourStrongPassword123!_MustIncludeCaps;TrustServerCertificate=True;"
       Authentication__Jwt__Secret: "ReplaceWithAStrongSecretKeyAtLeast32CharactersLong!"
+      Storage__UploadsPath: "/data/uploads"
+      # Optional seed defaults for your LAN Ollama / OpenAI-compatible host (editable in UI):
+      # Llm__Provider: "Ollama"
+      # Llm__BaseUrl: "http://ollama.lan:11434"
+    volumes:
+      - /mnt/tank/localroast/uploads:/data/uploads
     depends_on:
       sqlserver:
         condition: service_healthy
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: full-stack-template-sqlserver
+    container_name: local-roast-sqlserver
     restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "YourStrongPassword123!_MustIncludeCaps"
       MSSQL_PID: "Developer"
     volumes:
-      - sqlserver_data:/var/opt/mssql
+      - /mnt/tank/localroast/db:/var/opt/mssql
     healthcheck:
       test:
         [
@@ -89,9 +84,6 @@ services:
       timeout: 5s
       retries: 24
       start_period: 20s
-
-volumes:
-  sqlserver_data:
 ```
 
 Run:
@@ -100,23 +92,21 @@ Run:
 docker compose up -d
 ```
 
-Open `http://localhost:62949` (or your project's randomized host port) in your web browser.
+Open `http://localhost:62781` (or your reverse-proxied HTTPS domain) in your browser.
 
 ---
 
 ## Documentation
 
-All documentation is organized in the [`docs/`](docs/) directory using consistent `kebab-case` naming:
-
-- 🧩 **[Template Usage Guide](docs/template-usage.md)** — How to create a new project from this template, customize branding, and assign a randomized host port.
-- 🔄 **[Syncing Upstream Template Changes](docs/template-sync.md)** — How to merge upstream template updates into downstream forks with `./scripts/merge-template.ps1`.
-- 🐳 **[Production Docker Deployment Guide](docs/deployment/docker-deployment.md)** — Step-by-step production deployment with reverse proxies (Nginx, Caddy, Traefik, Cloudflare Tunnel), automated backups, and environment tuning.
-- 🚀 **[TrueNAS Scale Deployment Guide](docs/deployment/truenas-scale.md)** — Native Docker Compose setup for TrueNAS Scale (Electric Eel 24.10+) and Dragonfish (24.04), ZFS datasets, and automated snapshots.
-- 🔐 **[OIDC & SSO Authentication Guide](docs/deployment/oidc-authentication.md)** — Configure Single Sign-On with Google OAuth 2.0, Authentik, Keycloak, or Microsoft Entra ID.
-- 🛠️ **[Contributing & Development Guide](docs/contributing.md)** — Workstation setup (.NET 10 & Angular 22), database migrations (EF Core), code styling, and test execution.
+- 📋 **[Product Requirements Document (`docs/prd.md`)](docs/prd.md)**
+- 🔄 **[Syncing Upstream Template Changes (`docs/template-sync.md`)](docs/template-sync.md)**
+- 🐳 **[Production Docker Deployment Guide (`docs/deployment/docker-deployment.md`)](docs/deployment/docker-deployment.md)**
+- 🚀 **[TrueNAS Scale Deployment Guide (`docs/deployment/truenas-scale.md`)](docs/deployment/truenas-scale.md)**
+- 🔐 **[OIDC & SSO Authentication Guide (`docs/deployment/oidc-authentication.md`)](docs/deployment/oidc-authentication.md)**
+- 🛠️ **[Contributing & Development Guide (`docs/contributing.md`)](docs/contributing.md)**
 
 ---
 
 ## License
 
-This template is free and open-source software licensed under the **[MIT License](LICENSE)**.
+This project is free and open-source software licensed under the **[MIT License](LICENSE)**.

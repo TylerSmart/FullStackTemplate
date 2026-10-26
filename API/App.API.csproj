@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <SpaDist>..\Client\dist\App.Client\browser\</SpaDist>
-    <UserSecretsId>cc25ef0a-583f-4af9-867c-082e0534c235</UserSecretsId>
+    <UserSecretsId>919916c8-48e7-4a03-8870-b676f64887dc</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
 # TrueNAS Scale Deployment Guide
 
-This guide provides step-by-step instructions for deploying FullStackTemplate on **TrueNAS Scale** (supporting both **Electric Eel 24.10+** native Docker Compose and **Dragonfish 24.04** Custom Apps).
+This guide provides step-by-step instructions for deploying LocalRoast on **TrueNAS Scale** (supporting both **Electric Eel 24.10+** native Docker Compose and **Dragonfish 24.04** Custom Apps).
 
 ---
 
@@ -16,14 +16,14 @@ This guide provides step-by-step instructions for deploying FullStackTemplate on
    - [Traefik / Caddy on TrueNAS](#traefik--caddy-on-truenas)
    - [Cloudflare Tunnel](#cloudflare-tunnel)
 5. [Step 4: Automated ZFS Snapshots & Backups](#step-4-automated-zfs-snapshots--backups)
-6. [Updating FullStackTemplate on TrueNAS](#updating-fullstacktemplate-on-truenas)
+6. [Updating LocalRoast on TrueNAS](#updating-localroast-on-truenas)
 7. [Troubleshooting & FAQs](#troubleshooting--faqs)
 
 ---
 
 ## Overview & Prerequisites
 
-FullStackTemplate runs as a self-contained web service that includes:
+LocalRoast runs as a self-contained web service that includes:
 
 - The ASP.NET Core 10 backend API and OpenAPI documentation.
 - The Angular interactive web application served from static files.
@@ -47,12 +47,12 @@ Microsoft SQL Server runs inside its container as UID `10001`. To ensure the dat
 1. In the TrueNAS Scale WebUI, navigate to **Datasets**.
 2. Select your main storage pool (e.g. `tank`) and click **Add Dataset**.
 3. Configure the dataset:
-   - **Name**: `fullstacktemplate`
+   - **Name**: `localroast`
    - **Dataset Preset**: `Generic`
 4. Click **Save**.
-5. Select the newly created `fullstacktemplate` dataset, click **Add Dataset**, and create a child dataset:
+5. Select the newly created `localroast` dataset, click **Add Dataset**, and create a child dataset:
    - **Name**: `db`
-   - **Path**: `/mnt/tank/fullstacktemplate/db`
+   - **Path**: `/mnt/tank/localroast/db`
 6. Click **Save**.
 
 ### 2. Configure Permissions for SQL Server
@@ -61,8 +61,8 @@ Open the TrueNAS Scale web shell or an SSH session to your TrueNAS host:
 
 ```bash
 # Set ownership to SQL Server UID 10001
-sudo chown -R 10001:0 /mnt/tank/fullstacktemplate/db
-sudo chmod -R 770 /mnt/tank/fullstacktemplate/db
+sudo chown -R 10001:0 /mnt/tank/localroast/db
+sudo chmod -R 770 /mnt/tank/localroast/db
 ```
 
 > [!NOTE]
@@ -79,29 +79,29 @@ TrueNAS Scale 24.10 (Electric Eel) natively supports Docker Compose via **Custom
 1. In the TrueNAS Scale WebUI, navigate to **Apps**.
 2. Click **Discover Apps** in the top-right corner.
 3. In the top-right search/menu area, click the three-dots menu or **Custom App** / **Install via Docker Compose**.
-4. Set the **Application Name**: `fullstacktemplate`.
+4. Set the **Application Name**: `localroast`.
 5. Under **Compose File**, paste the following configuration:
 
 ```yaml
-name: full-stack-template-prod
+name: local-roast-prod
 
 services:
   api:
-    image: ghcr.io/tylersmart/fullstacktemplate:latest
-    container_name: full-stack-template-api
+    image: ghcr.io/tylersmart/localroast:latest
+    container_name: local-roast-api
     restart: unless-stopped
     ports:
-      # Randomized host port (e.g. 62949) chosen per project so multiple apps on TrueNAS never collide
-      - "62949:8080"
+      # Randomized host port (e.g. 62781) chosen per project so multiple apps on TrueNAS never collide
+      - "62781:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=FullStackTemplate;User Id=sa;Password=YourStrongPassword123!_MustIncludeCaps;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=LocalRoast;User Id=sa;Password=YourStrongPassword123!_MustIncludeCaps;TrustServerCertificate=True;"
 
       # JWT Authentication Secret
       Authentication__Jwt__Secret: "ReplaceWithAStrongSecretKeyAtLeast32CharactersLong!"
-      Authentication__Jwt__Issuer: "FullStackTemplate"
-      Authentication__Jwt__Audience: "FullStackTemplate"
+      Authentication__Jwt__Issuer: "LocalRoast"
+      Authentication__Jwt__Audience: "LocalRoast"
       Authentication__Jwt__ExpirationMinutes: 1440
 
       # Optional: External OIDC / SSO (Google, Authentik, Keycloak, Entra ID)
@@ -120,7 +120,7 @@ services:
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: full-stack-template-sqlserver
+    container_name: local-roast-sqlserver
     restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
@@ -129,7 +129,7 @@ services:
     volumes:
       # Host bind-mount to your ZFS dataset. Because this is a host directory path
       # (not a Docker-managed named volume), no top-level "volumes:" section is needed.
-      - /mnt/tank/fullstacktemplate/db:/var/opt/mssql
+      - /mnt/tank/localroast/db:/var/opt/mssql
     healthcheck:
       test:
         [
@@ -145,7 +145,7 @@ services:
 > [!IMPORTANT]
 > - Replace `YourStrongPassword123!_MustIncludeCaps` with your own secure password.
 > - Replace `ReplaceWithAStrongSecretKeyAtLeast32CharactersLong!` with a 32+ character random string (e.g. generated via `openssl rand -base64 32`).
-> - Update `/mnt/tank/fullstacktemplate/db` to your actual dataset path.
+> - Update `/mnt/tank/localroast/db` to your actual dataset path.
 
 6. Click **Save** / **Install**.
 7. Wait for the status indicator to transition from `Deploying` to `Running`.
@@ -157,21 +157,21 @@ services:
 For TrueNAS Scale 24.04 (Dragonfish), deploy using the Custom App wizard:
 
 1. In the WebUI, go to **Apps** -> **Discover Apps** -> **Custom App**.
-2. **Application Name**: `fullstacktemplate`.
+2. **Application Name**: `localroast`.
 3. **Container Image**:
-   - Repository: `ghcr.io/tylersmart/fullstacktemplate`
+   - Repository: `ghcr.io/tylersmart/localroast`
    - Tag: `latest`
 4. **Port Forwarding**:
    - Container Port: `8080`
-   - Node Port / Host Port: `62949` (or `30080` if using NodePort ranges)
+   - Node Port / Host Port: `62781` (or `30080` if using NodePort ranges)
 5. **Environment Variables**:
    - `ASPNETCORE_ENVIRONMENT`: `Production`
    - `ASPNETCORE_HTTP_PORTS`: `8080`
-   - `ConnectionStrings__DefaultConnection`: `Server=sqlserver;Database=FullStackTemplate;User Id=sa;Password=...`
+   - `ConnectionStrings__DefaultConnection`: `Server=sqlserver;Database=LocalRoast;User Id=sa;Password=...`
    - `Authentication__Jwt__Secret`: `Your32CharKeyHere`
 6. **Storage**:
    - Mount Type: `Host Path`
-   - Host Path: `/mnt/tank/fullstacktemplate/db`
+   - Host Path: `/mnt/tank/localroast/db`
    - Mount Path: `/var/opt/mssql`
 7. Click **Save** to deploy.
 
@@ -179,7 +179,7 @@ For TrueNAS Scale 24.04 (Dragonfish), deploy using the Custom App wizard:
 
 ## Step 3: Reverse Proxy & WebSocket Configuration
 
-To access FullStackTemplate with a friendly URL (e.g. `https://diagrams.yourdomain.com`) and secure SSL encryption, route external traffic through a reverse proxy.
+To access LocalRoast with a friendly URL (e.g. `https://diagrams.yourdomain.com`) and secure SSL encryption, route external traffic through a reverse proxy.
 
 ### Nginx Proxy Manager on TrueNAS
 
@@ -191,7 +191,7 @@ If you run **Nginx Proxy Manager** (available from the TrueNAS community catalog
    - Domain Names: `diagrams.yourdomain.com`
    - Scheme: `http`
    - Forward Hostname / IP: IP address of your TrueNAS server (e.g. `192.168.1.100`)
-   - Forward Port: `62949`
+   - Forward Port: `62781`
    - Enable: **Cache Assets**, **Block Common Exploits**, **Websockets Support** (Essential for SignalR live collaboration!)
 4. **SSL Tab**:
    - SSL Certificate: Request a new Let's Encrypt Certificate or choose your wildcard certificate.
@@ -206,7 +206,7 @@ Ensure your reverse proxy enables WebSocket upgrades. In Caddy, WebSockets are p
 
 ```caddy
 diagrams.yourdomain.com {
-    reverse_proxy 192.168.1.100:62949
+    reverse_proxy 192.168.1.100:62781
 }
 ```
 
@@ -219,7 +219,7 @@ If using a Cloudflare Tunnel:
 1. In Cloudflare Zero Trust, add a public hostname:
    - Subdomain: `diagrams`
    - Domain: `yourdomain.com`
-   - Service: `HTTP://<truenas-internal-ip>:62949`
+   - Service: `HTTP://<truenas-internal-ip>:62781`
 2. Under **Additional application settings**:
    - Ensure **WebSockets** is toggled ON.
 
@@ -233,7 +233,7 @@ One of the greatest benefits of running on TrueNAS Scale is atomic, zero-downtim
 
 1. In the TrueNAS Scale WebUI, navigate to **Data Protection** -> **Periodic Snapshot Tasks**.
 2. Click **Add**.
-3. **Dataset**: `tank/fullstacktemplate`.
+3. **Dataset**: `tank/localroast`.
 4. **Recursive**: Checked.
 5. **Schedule**:
    - Frequency: Daily (e.g. at `02:00 AM`).
@@ -244,14 +244,14 @@ Now, if a user accidentally deletes a board, or if data corruption occurs, you c
 
 ---
 
-## Updating FullStackTemplate on TrueNAS
+## Updating LocalRoast on TrueNAS
 
 1. In the TrueNAS Scale WebUI, navigate to **Apps**.
-2. Locate the `fullstacktemplate` app.
+2. Locate the `localroast` app.
 3. If an update is detected, an **Upgrade** badge will appear. Click **Upgrade**.
 4. Or, in the app's three-dot menu, select **Restart** / **Redeploy** to pull the latest image.
 5. On container start, the application checks for pending database migrations and applies them automatically.
-6. Check the container logs in the WebUI (**Apps** -> **fullstacktemplate** -> **Logs**) to confirm:
+6. Check the container logs in the WebUI (**Apps** -> **localroast** -> **Logs**) to confirm:
    ```text
    Database migration complete.
    Now listening on: http://[::]:8080
@@ -266,8 +266,8 @@ Now, if a user accidentally deletes a board, or if data corruption occurs, you c
 - **Cause**: SQL Server running as UID 10001 cannot write to the ZFS host dataset.
 - **Solution**: Open the TrueNAS shell and run:
   ```bash
-  sudo chown -R 10001:0 /mnt/tank/fullstacktemplate/db
-  sudo chmod -R 770 /mnt/tank/fullstacktemplate/db
+  sudo chown -R 10001:0 /mnt/tank/localroast/db
+  sudo chmod -R 770 /mnt/tank/localroast/db
   ```
   Then restart the app.
 
@@ -279,9 +279,9 @@ Now, if a user accidentally deletes a board, or if data corruption occurs, you c
 ### 3. Port conflict with TrueNAS WebUI
 
 - **Cause**: TrueNAS uses port 80/443 for its management portal, and many custom apps claim 8080.
-- **Solution**: FullStackTemplate maps host port `62949` by default to avoid conflicts.
+- **Solution**: LocalRoast maps host port `62781` by default to avoid conflicts.
   ```yaml
   ports:
-    - "62949:8080"
+    - "62781:8080"
   ```
-  Access the web interface at `http://truenas-ip:62949`.
+  Access the web interface at `http://truenas-ip:62781`.

@@ -1,7 +1,8 @@
-import { Service, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Service, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, firstValueFrom, of, tap } from 'rxjs';
+import { APP_STORAGE_PREFIX } from '../../../app.branding';
 import { apiUrl } from '../../api/api-url';
 import {
   AuthProviderDto,
@@ -11,8 +12,6 @@ import {
   LoginRequest,
   RegisterRequest,
 } from '../../models/auth.models';
-
-import { APP_STORAGE_PREFIX } from '../../../app.branding';
 
 const TOKEN_KEY = `${APP_STORAGE_PREFIX}-token`;
 
@@ -126,15 +125,24 @@ export class AuthService {
   }
 
   setSession(auth: AuthResponse): void {
+    const existing = this.currentUserState();
+    const fallbackThemeSettings = existing?.id === auth.id ? existing.themeSettings : null;
+
     this.tokenState.set(auth.token);
     this.currentUserState.set({
       id: auth.id,
       email: auth.email,
       username: auth.username,
+      themeSettings:
+        auth.themeSettings !== undefined ? auth.themeSettings : (fallbackThemeSettings ?? null),
     });
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(TOKEN_KEY, auth.token);
     }
+  }
+
+  updateCurrentUserThemeSettings(themeSettings: string): void {
+    this.currentUserState.update((prev) => (prev ? { ...prev, themeSettings } : prev));
   }
 
   clearSession(): void {

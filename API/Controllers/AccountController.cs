@@ -155,4 +155,53 @@ public sealed class AccountController(IAccountService accountService) : Controll
             );
         }
     }
+
+    [HttpPut("theme")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateThemeSettings(
+        [FromBody] UpdateThemeSettingsRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = TryGetCurrentUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var saved = await accountService.UpdateThemeSettingsAsync(
+                userId.Value,
+                request,
+                cancellationToken
+            );
+            return Ok(new { themeSettings = saved });
+        }
+        catch (DomainValidationException ex)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = ex.Title,
+                    Detail = ex.Message,
+                }
+            );
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "User not found",
+                    Detail = ex.Message,
+                }
+            );
+        }
+    }
 }

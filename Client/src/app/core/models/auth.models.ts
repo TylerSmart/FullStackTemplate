@@ -15,12 +15,14 @@ export interface AuthResponse {
   email: string;
   username: string;
   expiresAt: string;
+  themeSettings?: string | null;
 }
 
 export interface CurrentUserDto {
   id: string;
   email: string;
   username: string;
+  themeSettings?: string | null;
 }
 
 export interface OidcConfigurationDto {

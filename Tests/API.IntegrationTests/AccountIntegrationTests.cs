@@ -237,6 +237,66 @@ public sealed class AccountIntegrationTests
         Assert.IsTrue(refreshedAccount.HasPassword);
     }
 
+    [TestMethod]
+    public async Task UpdateThemeSettings_PersistsAndReturnsAcrossMeAccountAndLogin()
+    {
+        await RegisterAndAuthorizeAsync("theme@example.com", "themeuser", "Password123!");
+
+        var putResponse = await _client.PutAsJsonAsync(
+            "/api/account/theme",
+            new
+            {
+                settings = new
+                {
+                    mode = "dark",
+                    primaryPalette = "azure",
+                    secondaryPalette = "rose",
+                    tertiaryPalette = "spring-green",
+                    fontFamily = "caveat",
+                },
+            }
+        );
+        Assert.AreEqual(HttpStatusCode.OK, putResponse.StatusCode);
+
+        var me = await _client.GetFromJsonAsync<CurrentUserDto>("/api/auth/me");
+        Assert.IsNotNull(me);
+        Assert.IsNotNull(me.ThemeSettings);
+        StringAssert.Contains(me.ThemeSettings, "\"mode\":\"dark\"");
+        StringAssert.Contains(me.ThemeSettings, "\"primaryPalette\":\"azure\"");
+
+        var account = await _client.GetFromJsonAsync<AccountDto>("/api/account");
+        Assert.IsNotNull(account);
+        Assert.AreEqual(me.ThemeSettings, account.ThemeSettings);
+
+        using var anonClient = _factory.CreateClient();
+        var loginResp = await anonClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginRequest("theme@example.com", "Password123!")
+        );
+        Assert.AreEqual(HttpStatusCode.OK, loginResp.StatusCode);
+        var loginAuth = await loginResp.Content.ReadFromJsonAsync<AuthResponse>();
+        Assert.IsNotNull(loginAuth);
+        Assert.AreEqual(me.ThemeSettings, loginAuth.ThemeSettings);
+    }
+
+    [TestMethod]
+    public async Task UpdateThemeSettings_NonObjectOrOversized_ReturnsBadRequest()
+    {
+        await RegisterAndAuthorizeAsync("theme2@example.com", "themeuser2", "Password123!");
+
+        var nonObjectResp = await _client.PutAsJsonAsync(
+            "/api/account/theme",
+            new { settings = "not-an-object" }
+        );
+        Assert.AreEqual(HttpStatusCode.BadRequest, nonObjectResp.StatusCode);
+
+        var oversizedResp = await _client.PutAsJsonAsync(
+            "/api/account/theme",
+            new { settings = new { padding = new string('x', 4100) } }
+        );
+        Assert.AreEqual(HttpStatusCode.BadRequest, oversizedResp.StatusCode);
+    }
+
     private async Task<AuthResponse> RegisterAndAuthorizeAsync(
         string email,
         string username,

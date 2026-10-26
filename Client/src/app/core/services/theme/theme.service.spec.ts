@@ -1,6 +1,11 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { APP_STORAGE_PREFIX } from '../../../app.branding';
+import { CurrentUserDto } from '../../models/auth.models';
+import { AuthService } from '../auth/auth.service';
 import { DEFAULT_THEME_CONFIG, ThemeService } from './theme.service';
 
 describe('ThemeService', () => {
@@ -21,6 +26,7 @@ describe('ThemeService', () => {
   afterEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
+    vi.useRealTimers();
   });
 
   it('should initialize with system mode when no preference stored', () => {
@@ -146,5 +152,130 @@ describe('ThemeService', () => {
   it('should open theme settings dialog when openThemeSettingsDialog is called', async () => {
     await service.openThemeSettingsDialog();
     expect(dialogSpy.open).toHaveBeenCalled();
+  });
+
+  it('applies remote theme settings from authenticated user without triggering a PUT loop', () => {
+    vi.useFakeTimers();
+    const userSignal = signal<CurrentUserDto | null>(null);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        ThemeService,
+        {
+          provide: AuthService,
+          useValue: {
+            currentUser: userSignal.asReadonly(),
+            isAuthenticated: () => !!userSignal(),
+            updateCurrentUserThemeSettings: vi.fn(),
+          },
+        },
+      ],
+    });
+
+    const syncedService = TestBed.inject(ThemeService);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    userSignal.set({
+      id: 'u-1',
+      email: 'alice@example.com',
+      username: 'alice',
+      themeSettings: JSON.stringify({
+        mode: 'dark',
+        primaryPalette: 'azure',
+        secondaryPalette: 'rose',
+        tertiaryPalette: 'chartreuse',
+        fontFamily: 'caveat',
+      }),
+    });
+
+    TestBed.tick();
+    vi.advanceTimersByTime(1000);
+
+    expect(syncedService.mode()).toBe('dark');
+    expect(syncedService.primaryPalette()).toBe('azure');
+    expect(syncedService.fontFamily()).toBe('caveat');
+    httpMock.expectNone('/api/account/theme');
+    httpMock.verify();
+  });
+
+  it('debounces PUT /api/account/theme when authenticated user changes theme', () => {
+    vi.useFakeTimers();
+    const userSignal = signal<CurrentUserDto | null>({
+      id: 'u-1',
+      email: 'alice@example.com',
+      username: 'alice',
+      themeSettings: null,
+    });
+    const updateUserSpy = vi.fn();
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        ThemeService,
+        {
+          provide: AuthService,
+          useValue: {
+            currentUser: userSignal.asReadonly(),
+            isAuthenticated: () => !!userSignal(),
+            updateCurrentUserThemeSettings: updateUserSpy,
+          },
+        },
+      ],
+    });
+
+    const syncedService = TestBed.inject(ThemeService);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    syncedService.setMode('dark');
+    syncedService.setPrimaryPalette('azure');
+
+    vi.advanceTimersByTime(499);
+    httpMock.expectNone('/api/account/theme');
+
+    vi.advanceTimersByTime(1);
+    const req = httpMock.expectOne('/api/account/theme');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body.settings.mode).toBe('dark');
+    expect(req.request.body.settings.primaryPalette).toBe('azure');
+    req.flush({ themeSettings: JSON.stringify(req.request.body.settings) });
+
+    expect(updateUserSpy).toHaveBeenCalledTimes(1);
+    httpMock.verify();
+  });
+
+  it('does not call PUT /api/account/theme when user is unauthenticated', () => {
+    vi.useFakeTimers();
+    const userSignal = signal<CurrentUserDto | null>(null);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        ThemeService,
+        {
+          provide: AuthService,
+          useValue: {
+            currentUser: userSignal.asReadonly(),
+            isAuthenticated: () => false,
+            updateCurrentUserThemeSettings: vi.fn(),
+          },
+        },
+      ],
+    });
+
+    const syncedService = TestBed.inject(ThemeService);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    syncedService.setMode('dark');
+    vi.advanceTimersByTime(1000);
+
+    httpMock.expectNone('/api/account/theme');
+    httpMock.verify();
   });
 });

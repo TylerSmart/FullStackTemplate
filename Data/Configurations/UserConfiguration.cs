@@ -32,6 +32,8 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => new { u.ExternalProvider, u.ExternalSubjectId });
 
+        builder.Property(u => u.ThemeSettings).HasMaxLength(4000);
+
         builder.Property(u => u.CreatedBy).IsRequired().HasMaxLength(256);
 
         builder.Property(u => u.ModifiedBy).IsRequired().HasMaxLength(256);

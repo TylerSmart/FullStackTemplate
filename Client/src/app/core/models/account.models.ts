@@ -1,9 +1,12 @@
+import { ThemeConfig } from '../services/theme/theme.models';
+
 export interface AccountDto {
   id: string;
   email: string;
   username: string;
   hasPassword: boolean;
   externalProvider: string | null;
+  themeSettings?: string | null;
 }
 
 export interface UpdateProfileRequest {
@@ -15,4 +18,8 @@ export interface UpdateProfileRequest {
 export interface ChangePasswordRequest {
   currentPassword?: string | null;
   newPassword: string;
+}
+
+export interface UpdateThemeSettingsRequest {
+  settings: ThemeConfig;
 }

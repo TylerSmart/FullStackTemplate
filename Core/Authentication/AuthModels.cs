@@ -18,10 +18,16 @@ public sealed record AuthResponse(
     Guid Id,
     string Email,
     string Username,
-    DateTimeOffset ExpiresAt
+    DateTimeOffset ExpiresAt,
+    string? ThemeSettings = null
 );
 
-public sealed record CurrentUserDto(Guid Id, string Email, string Username);
+public sealed record CurrentUserDto(
+    Guid Id,
+    string Email,
+    string Username,
+    string? ThemeSettings = null
+);
 
 public sealed record ExternalAuthRequest(
     string? Code = null,

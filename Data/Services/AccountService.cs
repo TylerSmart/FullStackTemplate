@@ -1,3 +1,4 @@
+using System.Text.Json;
 using App.Core.Account;
 using App.Core.Authentication;
 using App.Core.Exceptions;
@@ -13,6 +14,8 @@ public sealed class AccountService(
     IOptions<JwtOptions> jwtOptions
 ) : IAccountService
 {
+    private const int MaxThemeSettingsLength = 4000;
+
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     public async Task<AccountDto?> GetAccountAsync(
@@ -34,7 +37,8 @@ public sealed class AccountService(
             Email: user.Email,
             Username: user.Username,
             HasPassword: !string.IsNullOrEmpty(user.PasswordHash),
-            ExternalProvider: user.ExternalProvider
+            ExternalProvider: user.ExternalProvider,
+            ThemeSettings: user.ThemeSettings
         );
     }
 
@@ -138,7 +142,7 @@ public sealed class AccountService(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return CreateAuthResponse(user.Id, user.Email, user.Username);
+        return CreateAuthResponse(user.Id, user.Email, user.Username, user.ThemeSettings);
     }
 
     public async Task<AuthResponse> ChangePasswordAsync(
@@ -177,12 +181,50 @@ public sealed class AccountService(
         user.PasswordHash = passwordHasher.HashPassword(request.NewPassword);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return CreateAuthResponse(user.Id, user.Email, user.Username);
+        return CreateAuthResponse(user.Id, user.Email, user.Username, user.ThemeSettings);
     }
 
-    private AuthResponse CreateAuthResponse(Guid id, string email, string username)
+    public async Task<string> UpdateThemeSettingsAsync(
+        Guid userId,
+        UpdateThemeSettingsRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
-        var summary = new UserSummary(id, email, username);
+        if (request.Settings.ValueKind != JsonValueKind.Object)
+        {
+            throw new DomainValidationException(
+                "Theme settings must be a valid JSON object.",
+                "Invalid theme settings"
+            );
+        }
+
+        var serialized = JsonSerializer.Serialize(request.Settings);
+        if (serialized.Length > MaxThemeSettingsLength)
+        {
+            throw new DomainValidationException(
+                $"Theme settings cannot exceed {MaxThemeSettingsLength} characters.",
+                "Theme settings too large"
+            );
+        }
+
+        var user =
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new NotFoundException("The authenticated user could not be found.");
+
+        user.ThemeSettings = serialized;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return serialized;
+    }
+
+    private AuthResponse CreateAuthResponse(
+        Guid id,
+        string email,
+        string username,
+        string? themeSettings
+    )
+    {
+        var summary = new UserSummary(id, email, username, themeSettings);
         var token = jwtTokenService.GenerateToken(summary);
         var expirationMinutes =
             _jwtOptions.ExpirationMinutes > 0 ? _jwtOptions.ExpirationMinutes : 1440;
@@ -192,7 +234,8 @@ public sealed class AccountService(
             Id: id,
             Email: email,
             Username: username,
-            ExpiresAt: DateTimeOffset.UtcNow.AddMinutes(expirationMinutes)
+            ExpiresAt: DateTimeOffset.UtcNow.AddMinutes(expirationMinutes),
+            ThemeSettings: themeSettings
         );
     }
 }

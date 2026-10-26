@@ -1,6 +1,12 @@
-import { Service, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DestroyRef, Service, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { EMPTY, Subject, catchError, debounceTime, switchMap, tap } from 'rxjs';
+import { APP_STORAGE_PREFIX } from '../../../app.branding';
 import type { ThemeCustomizerDialogComponent } from '../../../features/theme-customizer-dialog/theme-customizer-dialog.component';
+import { apiUrl } from '../../api/api-url';
+import { AuthService } from '../auth/auth.service';
 import {
   COLOR_PALETTES,
   COLOR_PALETTES_MAP,
@@ -17,10 +23,9 @@ import {
 export type { ThemeMode, ResolvedTheme, ColorPalette, FontOption, ThemeConfig };
 export { DEFAULT_THEME_CONFIG, COLOR_PALETTES, COLOR_PALETTES_MAP, FONT_OPTIONS, FONT_OPTIONS_MAP };
 
-import { APP_STORAGE_PREFIX } from '../../../app.branding';
-
 const STORAGE_KEY = `${APP_STORAGE_PREFIX}-theme`;
 const STORAGE_CONFIG_KEY = `${APP_STORAGE_PREFIX}-theme-config`;
+const REMOTE_SAVE_DEBOUNCE_MS = 500;
 
 @Service()
 export class ThemeService {
@@ -30,6 +35,12 @@ export class ThemeService {
       : null;
 
   private readonly dialog = inject(MatDialog, { optional: true });
+  private readonly http = inject(HttpClient, { optional: true });
+  private readonly authService = inject(AuthService, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly remoteSaveSubject = new Subject<ThemeConfig>();
+  private lastSyncedRemoteJson: string | null = null;
 
   private readonly systemDarkState = signal<boolean>(this.mediaQuery?.matches ?? false);
   private readonly configState = signal<ThemeConfig>(this.readStoredConfig());
@@ -83,6 +94,50 @@ export class ThemeService {
 
     this.applyMode(this.configState().mode);
     this.applyTheme(this.effectiveTheme());
+
+    this.remoteSaveSubject
+      .pipe(
+        debounceTime(REMOTE_SAVE_DEBOUNCE_MS),
+        switchMap((config) => {
+          if (!this.http) {
+            return EMPTY;
+          }
+          const serialized = JSON.stringify(config);
+          return this.http.put(apiUrl('/account/theme'), { settings: config }).pipe(
+            tap(() => {
+              this.lastSyncedRemoteJson = serialized;
+              this.authService?.updateCurrentUserThemeSettings?.(serialized);
+            }),
+            catchError(() => EMPTY),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    if (this.authService && typeof this.authService.currentUser === 'function') {
+      effect(() => {
+        const user = this.authService?.currentUser?.();
+        if (!user) {
+          this.lastSyncedRemoteJson = null;
+          return;
+        }
+
+        const rawTheme = user.themeSettings;
+        if (!rawTheme || rawTheme === this.lastSyncedRemoteJson) {
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(rawTheme) as Partial<ThemeConfig>;
+          const sanitized = this.sanitizeConfig(parsed);
+          this.lastSyncedRemoteJson = rawTheme;
+          this.setConfig(sanitized, false);
+        } catch {
+          // Ignore malformed server JSON
+        }
+      });
+    }
   }
 
   setMode(mode: ThemeMode): void {
@@ -139,7 +194,7 @@ export class ThemeService {
     this.setConfig(next);
   }
 
-  private setConfig(next: ThemeConfig): void {
+  private setConfig(next: ThemeConfig, persistRemote = true): void {
     this.configState.set(next);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(next));
@@ -147,6 +202,40 @@ export class ThemeService {
     }
     this.applyMode(next.mode);
     this.applyTheme(this.effectiveTheme());
+
+    const isAuthenticated =
+      typeof this.authService?.isAuthenticated === 'function'
+        ? this.authService.isAuthenticated()
+        : !!this.authService?.currentUser?.();
+
+    if (persistRemote && this.http && isAuthenticated) {
+      this.remoteSaveSubject.next(next);
+    }
+  }
+
+  private sanitizeConfig(parsed: Partial<ThemeConfig>): ThemeConfig {
+    return {
+      mode:
+        parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'system'
+          ? parsed.mode
+          : DEFAULT_THEME_CONFIG.mode,
+      primaryPalette:
+        parsed.primaryPalette && COLOR_PALETTES_MAP[parsed.primaryPalette]
+          ? parsed.primaryPalette
+          : DEFAULT_THEME_CONFIG.primaryPalette,
+      secondaryPalette:
+        parsed.secondaryPalette && COLOR_PALETTES_MAP[parsed.secondaryPalette]
+          ? parsed.secondaryPalette
+          : DEFAULT_THEME_CONFIG.secondaryPalette,
+      tertiaryPalette:
+        parsed.tertiaryPalette && COLOR_PALETTES_MAP[parsed.tertiaryPalette]
+          ? parsed.tertiaryPalette
+          : DEFAULT_THEME_CONFIG.tertiaryPalette,
+      fontFamily:
+        parsed.fontFamily && FONT_OPTIONS_MAP[parsed.fontFamily]
+          ? parsed.fontFamily
+          : DEFAULT_THEME_CONFIG.fontFamily,
+    };
   }
 
   private readStoredConfig(): ThemeConfig {
@@ -158,28 +247,7 @@ export class ThemeService {
     if (configRaw) {
       try {
         const parsed = JSON.parse(configRaw) as Partial<ThemeConfig>;
-        return {
-          mode:
-            parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'system'
-              ? parsed.mode
-              : DEFAULT_THEME_CONFIG.mode,
-          primaryPalette:
-            parsed.primaryPalette && COLOR_PALETTES_MAP[parsed.primaryPalette]
-              ? parsed.primaryPalette
-              : DEFAULT_THEME_CONFIG.primaryPalette,
-          secondaryPalette:
-            parsed.secondaryPalette && COLOR_PALETTES_MAP[parsed.secondaryPalette]
-              ? parsed.secondaryPalette
-              : DEFAULT_THEME_CONFIG.secondaryPalette,
-          tertiaryPalette:
-            parsed.tertiaryPalette && COLOR_PALETTES_MAP[parsed.tertiaryPalette]
-              ? parsed.tertiaryPalette
-              : DEFAULT_THEME_CONFIG.tertiaryPalette,
-          fontFamily:
-            parsed.fontFamily && FONT_OPTIONS_MAP[parsed.fontFamily]
-              ? parsed.fontFamily
-              : DEFAULT_THEME_CONFIG.fontFamily,
-        };
+        return this.sanitizeConfig(parsed);
       } catch {
         // Fall back to legacy if json parse fails
       }

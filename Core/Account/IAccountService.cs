@@ -17,4 +17,10 @@ public interface IAccountService
         ChangePasswordRequest request,
         CancellationToken cancellationToken = default
     );
+
+    Task<string> UpdateThemeSettingsAsync(
+        Guid userId,
+        UpdateThemeSettingsRequest request,
+        CancellationToken cancellationToken = default
+    );
 }

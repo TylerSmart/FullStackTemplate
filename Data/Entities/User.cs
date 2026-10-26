@@ -18,6 +18,8 @@ public sealed class User : IAuditable
 
     public string? ExternalSubjectId { get; set; }
 
+    public string? ThemeSettings { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public string CreatedBy { get; set; } = "System";

@@ -85,7 +85,7 @@ public sealed class AuthService(
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var userSummary = new UserSummary(user.Id, user.Email, user.Username);
+        var userSummary = new UserSummary(user.Id, user.Email, user.Username, user.ThemeSettings);
         var token = jwtTokenService.GenerateToken(userSummary);
 
         return new AuthResponse(
@@ -93,7 +93,8 @@ public sealed class AuthService(
             Id: user.Id,
             Email: user.Email,
             Username: user.Username,
-            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24)
+            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24),
+            ThemeSettings: user.ThemeSettings
         );
     }
 
@@ -118,7 +119,7 @@ public sealed class AuthService(
             return null;
         }
 
-        var userSummary = new UserSummary(user.Id, user.Email, user.Username);
+        var userSummary = new UserSummary(user.Id, user.Email, user.Username, user.ThemeSettings);
         var token = jwtTokenService.GenerateToken(userSummary);
 
         return new AuthResponse(
@@ -126,7 +127,8 @@ public sealed class AuthService(
             Id: user.Id,
             Email: user.Email,
             Username: user.Username,
-            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24)
+            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24),
+            ThemeSettings: user.ThemeSettings
         );
     }
 
@@ -144,7 +146,7 @@ public sealed class AuthService(
             return null;
         }
 
-        return new CurrentUserDto(user.Id, user.Email, user.Username);
+        return new CurrentUserDto(user.Id, user.Email, user.Username, user.ThemeSettings);
     }
 
     public async Task<AuthResponse?> ExternalCallbackAsync(
@@ -184,7 +186,8 @@ public sealed class AuthService(
             Id: userSummary.Id,
             Email: userSummary.Email,
             Username: userSummary.Username,
-            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24)
+            ExpiresAt: DateTimeOffset.UtcNow.AddHours(24),
+            ThemeSettings: userSummary.ThemeSettings
         );
     }
 
@@ -258,6 +261,6 @@ public sealed class AuthService(
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        return new UserSummary(user.Id, user.Email, user.Username);
+        return new UserSummary(user.Id, user.Email, user.Username, user.ThemeSettings);
     }
 }

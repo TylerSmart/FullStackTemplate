@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace App.Core.Account;
 
@@ -7,7 +8,8 @@ public sealed record AccountDto(
     string Email,
     string Username,
     bool HasPassword,
-    string? ExternalProvider
+    string? ExternalProvider,
+    string? ThemeSettings = null
 );
 
 public sealed record UpdateProfileRequest(
@@ -20,3 +22,5 @@ public sealed record ChangePasswordRequest(
     [MaxLength(100)] string? CurrentPassword,
     [Required, MinLength(6), MaxLength(100)] string NewPassword
 );
+
+public sealed record UpdateThemeSettingsRequest(JsonElement Settings);

@@ -1,0 +1,185 @@
+<div class="catalog-page">
+  <!-- Header Bar -->
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">Canonical Food Catalog</h1>
+      <p class="page-subtitle">
+        Manage household food items, store aisles, and pantry staples referenced across your
+        cookbook.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="openCreateDialog()"
+        aria-label="Add new food item"
+      >
+        <mat-icon>add</mat-icon>
+        <span>Add Food Item</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <mat-card class="filter-card">
+    <div class="filter-row">
+      <!-- Search Input -->
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search food items, aliases...</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          placeholder="e.g. olive oil, garlic"
+          autocomplete="off"
+        />
+        @if (searchQuery()) {
+          <button mat-icon-button matSuffix (click)="searchQuery.set('')" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <!-- Store Aisle Filter -->
+      <mat-form-field appearance="outline" class="aisle-field" subscriptSizing="dynamic">
+        <mat-label>Filter by Store Aisle</mat-label>
+        <mat-select [ngModel]="selectedAisleId()" (ngModelChange)="selectedAisleId.set($event)">
+          <mat-option [value]="''">All Aisles</mat-option>
+          @for (aisle of aisles(); track aisle.id) {
+            <mat-option [value]="aisle.id">{{ aisle.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Pantry Staples Only Toggle -->
+      <div class="staple-toggle-container">
+        <mat-slide-toggle
+          [checked]="onlyPantryStaples()"
+          (change)="onlyPantryStaples.set($event.checked)"
+          color="primary"
+        >
+          Pantry Staples Only
+        </mat-slide-toggle>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Error Message Banner -->
+  @if (errorMessage()) {
+    <div class="catalog-error-banner" role="alert">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+      <button mat-button (click)="loadItems()">Retry</button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading food catalog...</p>
+    </div>
+  } @else {
+    <!-- Empty State -->
+    @if (filteredItems().length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">kitchen</mat-icon>
+        <h3>No food items found</h3>
+        <p>
+          @if (searchQuery() || selectedAisleId() || onlyPantryStaples()) {
+            Try adjusting your search query or filters.
+          } @else {
+            Get started by adding your first staple ingredient to the catalog!
+          }
+        </p>
+        @if (searchQuery()) {
+          <button mat-stroked-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            <span>Create "{{ searchQuery() }}"</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <!-- Food Items List -->
+      <div class="catalog-grid">
+        @for (item of filteredItems(); track item.id) {
+          <mat-card class="food-item-card">
+            <div class="item-content">
+              <div class="item-header">
+                <div class="name-block">
+                  <h3 class="item-name">{{ item.name }}</h3>
+                  @if (item.defaultStoreAisleName) {
+                    <span class="aisle-badge">
+                      <mat-icon class="badge-icon">shopping_cart</mat-icon>
+                      {{ item.defaultStoreAisleName }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Pantry Staple Button -->
+                <button
+                  mat-icon-button
+                  [color]="item.isPantryStaple ? 'accent' : ''"
+                  (click)="togglePantryStaple(item)"
+                  [matTooltip]="
+                    item.isPantryStaple ? 'Pantry Staple (Always stocked)' : 'Mark as Pantry Staple'
+                  "
+                  [attr.aria-label]="
+                    item.isPantryStaple ? 'Unmark pantry staple' : 'Mark as pantry staple'
+                  "
+                >
+                  <mat-icon [class.staple-active]="item.isPantryStaple">
+                    {{ item.isPantryStaple ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </button>
+              </div>
+
+              <!-- Aliases -->
+              @if (item.aliases.length > 0) {
+                <div class="item-aliases">
+                  <span class="aliases-label">Aliases:</span>
+                  @for (alias of item.aliases; track alias) {
+                    <span class="alias-pill">{{ alias }}</span>
+                  }
+                </div>
+              }
+
+              <!-- Footer with Recipe References and Actions -->
+              <div class="item-footer">
+                <span class="usage-count">
+                  <mat-icon class="usage-icon">menu_book</mat-icon>
+                  <span
+                    >Used in {{ item.referencedRecipeCount }}
+                    {{ item.referencedRecipeCount === 1 ? 'recipe' : 'recipes' }}</span
+                  >
+                </span>
+
+                <div class="item-actions">
+                  <button
+                    mat-icon-button
+                    (click)="openEditDialog(item)"
+                    aria-label="Edit food item"
+                    matTooltip="Edit Item"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="deleteItem(item)"
+                    aria-label="Delete food item"
+                    matTooltip="Delete Item"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</div>

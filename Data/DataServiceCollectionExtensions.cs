@@ -1,6 +1,7 @@
 using App.Core.Account;
 using App.Core.Authentication;
-using App.Core.Todos;
+using App.Core.FoodCatalog;
+using App.Core.Recipes;
 using App.Data.Auditing;
 using App.Data.Services;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,8 @@ public static class DataServiceCollectionExtensions
         services.AddScoped<AuditSaveChangesInterceptor>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<ITodoService, TodoService>();
+        services.AddScoped<IFoodCatalogService, FoodCatalogService>();
+        services.AddScoped<IRecipeService, RecipeService>();
 
         if (
             string.Equals(

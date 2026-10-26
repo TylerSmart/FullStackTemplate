@@ -1,0 +1,79 @@
+<h2 mat-dialog-title>
+  {{ isEdit() ? 'Edit Food Item' : 'New Food Item' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="dialog-form" (ngSubmit)="onSave()">
+    @if (errorMessage()) {
+      <div class="form-error-banner" role="alert">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Item Name -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Item Name</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="e.g. Extra Virgin Olive Oil"
+        required
+        autocomplete="off"
+      />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Name is required</mat-error>
+      }
+      @if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Name must be at most 150 characters</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Default Store Aisle -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Default Store Aisle</mat-label>
+      <mat-select formControlName="defaultStoreAisleId">
+        <mat-option [value]="''">-- No Aisle Assigned --</mat-option>
+        @for (aisle of aisles(); track aisle.id) {
+          <mat-option [value]="aisle.id">{{ aisle.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Pantry Staple Toggle -->
+    <div class="checkbox-row">
+      <mat-checkbox formControlName="isPantryStaple"> Always stocked pantry staple </mat-checkbox>
+    </div>
+
+    <!-- Aliases (Comma separated) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Aliases / Synonyms</mat-label>
+      <input
+        matInput
+        formControlName="aliasesText"
+        placeholder="e.g. EVOO, Olive Oil (comma-separated)"
+        autocomplete="off"
+      />
+      <mat-hint>Enter alternate names separated by commas</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="dialogRef.close(null)" [disabled]="isSubmitting()">
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onSave()"
+    [disabled]="isSubmitting() || form.invalid"
+  >
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      <span>{{ isEdit() ? 'Save Changes' : 'Create Item' }}</span>
+    }
+  </button>
+</mat-dialog-actions>

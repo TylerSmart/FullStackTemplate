@@ -4,6 +4,7 @@ using App.API.Http;
 using App.Core;
 using App.Core.Authentication;
 using App.Data;
+using App.Data.Seeding;
 using App.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -176,6 +177,8 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
     }
+
+    await HouseholdCatalogSeeder.SeedAsync(db);
 }
 
 app.UseSerilogRequestLogging(options =>

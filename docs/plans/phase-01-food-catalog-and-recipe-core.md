@@ -1,7 +1,7 @@
 # Phase 01: Template Cleanup, Canonical Food Catalog & Core Structured Cookbook
 
 > **Branch:** `feature/phase-01-food-catalog-and-recipe-core`
-> **Status:** Planned (`[ ]` Not Started | `[~]` In Progress | `[x]` Completed)
+> **Status:** [x] Completed
 > **PRD Reference:** `docs/prd.md` — Sections 2, 3, 4.1.1–4.1.5, 5, and 6 (Milestone 1, Slice 1)
 > **Target Execution:** Run `/execute-phase` to execute this plan step-by-step.
 
@@ -664,7 +664,7 @@ All components **MUST** follow `.agents/rules/frontend-angular.md`: separate `.t
 
 ## 6. Step-by-Step Execution Checklist (For Implementation Agent)
 
-- [ ] **Task 1: Backend Core, Entities, Configurations, Seeder & Migration**
+- [x] **Task 1: Backend Core, Entities, Configurations, Seeder & Migration**
   - Delete all `Todo` backend files (`Core/Todos/*`, `Data/Entities/TodoItem.cs`, `Data/Configurations/TodoItemConfiguration.cs`, `Data/Services/TodoService.cs`) and remove `TodoItems` from `User.cs` and `AppDbContext.cs`.
   - Implement `Core/FoodCatalog/*`, `Core/Recipes/*` (`RecipeEnums.cs`, `RecipeModels.cs`, `CulinaryMath.cs`, `IRecipeService.cs`).
   - Implement the 8 entities in `Data/Entities/`, the 8 fluent configurations in `Data/Configurations/` (strictly honoring `DeleteBehavior.Restrict` on `FoodItem.DefaultStoreAisleId`, `RecipeIngredient.FoodItemId`, `RecipeIngredient.LinkedRecipeId`, and `RecipeStepIngredient.RecipeIngredientId`), `Data/Seeding/HouseholdCatalogSeeder.cs`, `Data/Services/FoodCatalogService.cs`, and `Data/Services/RecipeService.cs`.
@@ -682,7 +682,7 @@ All components **MUST** follow `.agents/rules/frontend-angular.md`: separate `.t
     dotnet test --project Tests/Infrastructure.UnitTests/App.Infrastructure.UnitTests.csproj
     ```
 
-- [ ] **Task 2: API Controllers & Integration Tests**
+- [x] **Task 2: API Controllers & Integration Tests**
   - Delete `API/Controllers/TodosController.cs` and `Tests/API.IntegrationTests/TodoIntegrationTests.cs`.
   - Create thin HTTP controllers: `StoreAislesController.cs`, `FoodItemsController.cs`, and `RecipesController.cs`.
   - Update `Tests/API.IntegrationTests/OpenApiIntegrationTests.cs` (`/store-aisles`, `/food-items`, `/recipes`).
@@ -694,7 +694,7 @@ All components **MUST** follow `.agents/rules/frontend-angular.md`: separate `.t
     dotnet test --project Tests/API.IntegrationTests/App.API.IntegrationTests.csproj
     ```
 
-- [ ] **Task 3: Angular Client, Culinary Math & Frontend Unit Tests**
+- [x] **Task 3: Angular Client, Culinary Math & Frontend Unit Tests**
   - Move `ConfirmDialogComponent` to `Client/src/app/shared/components/confirm-dialog/` and delete `Client/src/app/core/models/todo.models.ts`, `Client/src/app/core/services/todo/`, and `Client/src/app/features/dashboard/`.
   - Implement `food-catalog.models.ts`, `recipe.models.ts`, `culinary-math.ts`, `FoodCatalogService`, and `RecipeService`.
   - Implement `AppShellComponent`, `FoodCatalogComponent`, `FoodItemDialogComponent`, `RecipeListComponent`, `RecipeDetailComponent`, and `RecipeEditorComponent` (strictly external `.ts`/`.html`/`.scss` files, accessible labels, and responsive `360px` + desktop layouts), and wire `app.routes.ts`.
@@ -707,7 +707,7 @@ All components **MUST** follow `.agents/rules/frontend-angular.md`: separate `.t
     npm test -- --watch=false
     ```
 
-- [ ] **Task 4: Playwright E2E Verification & Final Formatting**
+- [x] **Task 4: Playwright E2E Verification & Final Formatting**
   - Create `Tests/Client.E2ETests/PlaywrightServerFixture.cs` (starts `App.API` child process on a free loopback port with `--environment Testing --UseInMemoryDatabase=true --webroot <Client/dist/App.Client/browser>` and JWT settings, polling `/api/openapi/v1.json` until ready) and update `Tests/Client.E2ETests/ClientSmokeTests.cs` to verify end-to-end user registration, Food Catalog item creation, structured Recipe creation with ingredients/steps/timers, Recipe Detail live `2x` scaling & `Metric` unit switching, and `360px` mobile navigation bar rendering.
   - Ensure Playwright Chromium is installed if needed (`pwsh Tests/Client.E2ETests/bin/Debug/net10.0/playwright.ps1 install chromium`), build the Angular production bundle (`npm run build:production` in `Client/`), and run the full verification suite:
     ```powershell

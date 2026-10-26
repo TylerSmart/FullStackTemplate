@@ -1,0 +1,100 @@
+<div class="shell-layout">
+  <!-- Desktop / Header Top Bar -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <mat-icon class="brand-icon" aria-hidden="true">{{ brandIcon }}</mat-icon>
+      <span class="brand-title">{{ appName }}</span>
+    </div>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="desktop-nav" aria-label="Main Navigation">
+      <a mat-button routerLink="/recipes" routerLinkActive="active-nav-link" class="nav-link">
+        <mat-icon>menu_book</mat-icon>
+        <span>Cookbook</span>
+      </a>
+      <a mat-button routerLink="/catalog" routerLinkActive="active-nav-link" class="nav-link">
+        <mat-icon>kitchen</mat-icon>
+        <span>Food Catalog</span>
+      </a>
+    </nav>
+
+    <div class="top-actions">
+      <!-- Theme Switcher -->
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="themeMenu"
+        [attr.aria-label]="'Theme: ' + themeLabel()"
+        [matTooltip]="'Theme: ' + themeLabel()"
+      >
+        <mat-icon>{{ themeIcon() }}</mat-icon>
+      </button>
+      <mat-menu #themeMenu="matMenu">
+        <button mat-menu-item (click)="themeService.setMode('light')">
+          <mat-icon>light_mode</mat-icon>
+          <span>Light</span>
+        </button>
+        <button mat-menu-item (click)="themeService.setMode('dark')">
+          <mat-icon>dark_mode</mat-icon>
+          <span>Dark</span>
+        </button>
+        <button mat-menu-item (click)="themeService.setMode('system')">
+          <mat-icon>brightness_auto</mat-icon>
+          <span>System</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="themeService.openThemeSettingsDialog()">
+          <mat-icon>palette</mat-icon>
+          <span>Customize Theme...</span>
+        </button>
+      </mat-menu>
+
+      <!-- User Menu -->
+      <button
+        mat-button
+        class="user-profile-btn"
+        [matMenuTriggerFor]="userMenu"
+        aria-label="User profile and account options"
+      >
+        <mat-icon class="user-avatar-icon">account_circle</mat-icon>
+        <span class="user-name">{{ authService.currentUser()?.username || 'User' }}</span>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header">
+          <span class="user-menu-name">{{ authService.currentUser()?.username }}</span>
+          <span class="user-menu-email">{{ authService.currentUser()?.email }}</span>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="accountService.openAccountSettingsDialog()">
+          <mat-icon>manage_accounts</mat-icon>
+          <span>Account Settings</span>
+        </button>
+        <button mat-menu-item (click)="onLogout()">
+          <mat-icon>logout</mat-icon>
+          <span>Log Out</span>
+        </button>
+      </mat-menu>
+    </div>
+  </header>
+
+  <!-- Main View Area -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar (Visible on mobile viewports <= 768px / 360px) -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <a routerLink="/recipes" routerLinkActive="active-tab" class="mobile-tab" aria-label="Cookbook">
+      <mat-icon>menu_book</mat-icon>
+      <span>Cookbook</span>
+    </a>
+    <a
+      routerLink="/catalog"
+      routerLinkActive="active-tab"
+      class="mobile-tab"
+      aria-label="Food Catalog"
+    >
+      <mat-icon>kitchen</mat-icon>
+      <span>Catalog</span>
+    </a>
+  </nav>
+</div>

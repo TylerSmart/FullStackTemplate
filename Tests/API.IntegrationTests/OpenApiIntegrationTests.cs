@@ -37,7 +37,9 @@ public sealed class OpenApiIntegrationTests
         var content = await response.Content.ReadAsStringAsync();
         Assert.IsFalse(string.IsNullOrWhiteSpace(content));
         StringAssert.Contains(content, expectedTitle);
-        StringAssert.Contains(content, "/todos");
+        StringAssert.Contains(content, "/recipes");
+        StringAssert.Contains(content, "/food-items");
+        StringAssert.Contains(content, "/store-aisles");
         StringAssert.Contains(content, "/auth");
         StringAssert.Contains(content, "securitySchemes");
         StringAssert.Contains(content, "Bearer");

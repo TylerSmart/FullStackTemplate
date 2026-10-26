@@ -1,0 +1,343 @@
+<div class="recipe-detail-page">
+  <!-- Top Navigation & Actions Bar -->
+  <div class="detail-nav-bar">
+    <a mat-button routerLink="/recipes" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Cookbook</span>
+    </a>
+
+    @if (recipe()) {
+      <div class="detail-top-actions">
+        <a
+          mat-stroked-button
+          [routerLink]="['/recipes', recipe()!.id, 'edit']"
+          aria-label="Edit recipe"
+        >
+          <mat-icon>edit</mat-icon>
+          <span>Edit</span>
+        </a>
+        <button mat-button color="warn" (click)="deleteRecipe()" aria-label="Delete recipe">
+          <mat-icon>delete</mat-icon>
+          <span>Delete</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading recipe...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="detail-error-banner" role="alert">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+      <a mat-button routerLink="/recipes">Back to Recipes</a>
+    </div>
+  } @else if (recipe()) {
+    <!-- Recipe Hero / Header -->
+    <header class="recipe-hero">
+      <div class="hero-header-row">
+        <h1 class="recipe-title">{{ recipe()!.title }}</h1>
+        <div class="hero-badges">
+          @if (recipe()!.difficulty) {
+            <span class="diff-badge" [attr.data-diff]="recipe()!.difficulty">
+              {{ recipe()!.difficulty }}
+            </span>
+          }
+          @if (recipe()!.status !== 'Published') {
+            <span class="status-badge" [attr.data-status]="recipe()!.status">
+              {{ recipe()!.status === 'DraftReview' ? 'Draft' : 'Archived' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      @if (recipe()!.description) {
+        <p class="recipe-description">{{ recipe()!.description }}</p>
+      }
+
+      <!-- Metadata summary row -->
+      <div class="recipe-stats-strip">
+        @if (recipe()!.prepTimeMinutes) {
+          <div class="stat-pill">
+            <span class="stat-label">Prep Time</span>
+            <span class="stat-value">{{ recipe()!.prepTimeMinutes }} min</span>
+          </div>
+        }
+        @if (recipe()!.cookTimeMinutes) {
+          <div class="stat-pill">
+            <span class="stat-label">Cook Time</span>
+            <span class="stat-value">{{ recipe()!.cookTimeMinutes }} min</span>
+          </div>
+        }
+        @if (recipe()!.totalTimeMinutes) {
+          <div class="stat-pill stat-highlight">
+            <span class="stat-label">Total Time</span>
+            <span class="stat-value">{{ recipe()!.totalTimeMinutes }} min</span>
+          </div>
+        }
+        <div class="stat-pill">
+          <span class="stat-label">Base Yield</span>
+          <span class="stat-value">{{
+            recipe()!.yieldDisplay || recipe()!.baseServings + ' servings'
+          }}</span>
+        </div>
+        @if (recipe()!.sourceName) {
+          <div class="stat-pill source-stat">
+            <span class="stat-label">Source</span>
+            <span class="stat-value">
+              @if (recipe()!.sourceUrl) {
+                <a
+                  [href]="recipe()!.sourceUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="source-link"
+                >
+                  {{ recipe()!.sourceName }}
+                  @if (recipe()!.sourceBookPage) {
+                    (p. {{ recipe()!.sourceBookPage }})
+                  }
+                </a>
+              } @else {
+                {{ recipe()!.sourceName }}
+                @if (recipe()!.sourceBookPage) {
+                  (p. {{ recipe()!.sourceBookPage }})
+                }
+              }
+            </span>
+          </div>
+        }
+      </div>
+    </header>
+
+    <!-- Interactive Culinary Controls Bar -->
+    <mat-card class="culinary-controls-card">
+      <div class="controls-container">
+        <!-- Servings Stepper & Multipliers -->
+        <div class="servings-group">
+          <span class="controls-label">Servings / Scaling:</span>
+
+          <!-- Quick Multiplier Chips -->
+          <div class="multiplier-chips">
+            <button
+              mat-button
+              class="mult-chip"
+              [class.mult-active]="scaleFactor() === 0.5"
+              (click)="setMultiplier(0.5)"
+            >
+              0.5x
+            </button>
+            <button
+              mat-button
+              class="mult-chip"
+              [class.mult-active]="scaleFactor() === 1"
+              (click)="setMultiplier(1)"
+            >
+              1x
+            </button>
+            <button
+              mat-button
+              class="mult-chip"
+              [class.mult-active]="scaleFactor() === 1.5"
+              (click)="setMultiplier(1.5)"
+            >
+              1.5x
+            </button>
+            <button
+              mat-button
+              class="mult-chip"
+              [class.mult-active]="scaleFactor() === 2"
+              (click)="setMultiplier(2)"
+            >
+              2x
+            </button>
+            <button
+              mat-button
+              class="mult-chip"
+              [class.mult-active]="scaleFactor() === 3"
+              (click)="setMultiplier(3)"
+            >
+              3x
+            </button>
+          </div>
+
+          <!-- Stepper -->
+          <div class="stepper-box">
+            <button
+              mat-icon-button
+              (click)="adjustServings(-1)"
+              [disabled]="targetServings() <= 1"
+              aria-label="Decrease servings"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="servings-count">{{ targetServings() }}</span>
+            <button mat-icon-button (click)="adjustServings(1)" aria-label="Increase servings">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Unit System Switcher -->
+        <div class="units-group">
+          <span class="controls-label">Units:</span>
+          <mat-button-toggle-group
+            [ngModel]="targetSystem()"
+            (ngModelChange)="targetSystem.set($event)"
+            aria-label="Unit system"
+            class="unit-toggle-group"
+          >
+            <mat-button-toggle value="Original">Original</mat-button-toggle>
+            <mat-button-toggle value="UsCustomary">US</mat-button-toggle>
+            <mat-button-toggle value="Metric">Metric</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Main Content Two-Column Grid (Desktop) / Stacked (Mobile 360px) -->
+    <div class="recipe-body-grid">
+      <!-- Left Column: Ingredients -->
+      <section class="ingredients-column" aria-label="Ingredients">
+        <h2 class="section-heading">
+          <mat-icon class="heading-icon">format_list_bulleted</mat-icon>
+          <span>Ingredients</span>
+        </h2>
+
+        @for (group of groupedIngredients(); track group.sectionName) {
+          <div class="ingredient-section-group">
+            @if (group.sectionName) {
+              <h3 class="group-subtitle">{{ group.sectionName }}</h3>
+            }
+
+            <ul class="ingredients-list">
+              @for (item of group.items; track item.ingredient.id) {
+                <li
+                  class="ingredient-row"
+                  [class.checked-row]="checkedIngredients()[item.ingredient.id]"
+                >
+                  <mat-checkbox
+                    [checked]="checkedIngredients()[item.ingredient.id]"
+                    (change)="toggleIngredientChecked(item.ingredient.id)"
+                    [attr.aria-label]="item.ingredient.displayName"
+                  >
+                    <span class="ingredient-text">
+                      @if (item.displayQuantityAndUnit) {
+                        <strong class="scaled-qty">{{ item.displayQuantityAndUnit }}</strong>
+                      }
+                      <span class="ing-name">{{ item.ingredient.displayName }}</span>
+                      @if (item.ingredient.preparationNote) {
+                        <span class="prep-note">({{ item.ingredient.preparationNote }})</span>
+                      }
+                      @if (item.ingredient.isOptional) {
+                        <span class="optional-tag">optional</span>
+                      }
+                      @if (item.ingredient.isPantryStaple) {
+                        <span class="pantry-tag" matTooltip="Pantry Staple">pantry</span>
+                      }
+                    </span>
+                  </mat-checkbox>
+
+                  <!-- Linked Sub-Recipe inline expansion if applicable -->
+                  @if (item.ingredient.linkedRecipeId) {
+                    @if (getSubRecipe(item.ingredient.linkedRecipeId); as subRecipe) {
+                      <mat-expansion-panel class="sub-recipe-inline-panel">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <mat-icon class="sub-icon">restaurant_menu</mat-icon>
+                            <span>Sub-Recipe: {{ subRecipe.title }}</span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <div class="sub-recipe-content">
+                          <p class="sub-recipe-link-bar">
+                            <a [routerLink]="['/recipes', subRecipe.id]" class="view-sub-link">
+                              View standalone recipe <mat-icon>open_in_new</mat-icon>
+                            </a>
+                          </p>
+                          <div class="sub-ingredients-list">
+                            <strong>Sub-Recipe Ingredients:</strong>
+                            <ul>
+                              @for (subIng of subRecipe.ingredients; track subIng.id) {
+                                <li>
+                                  {{ subIng.displayName }}
+                                  @if (subIng.preparationNote) {
+                                    ({{ subIng.preparationNote }})
+                                  }
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+
+      <!-- Right Column: Instructions -->
+      <section class="instructions-column" aria-label="Instructions">
+        <h2 class="section-heading">
+          <mat-icon class="heading-icon">menu_book</mat-icon>
+          <span>Instructions</span>
+        </h2>
+
+        @for (group of groupedSteps(); track group.sectionName) {
+          <div class="step-section-group">
+            @if (group.sectionName) {
+              <h3 class="group-subtitle">{{ group.sectionName }}</h3>
+            }
+
+            <ol class="steps-list">
+              @for (stepItem of group.items; track stepItem.step.id) {
+                <li class="step-card">
+                  <div class="step-header">
+                    <span class="step-number-circle">{{ stepItem.step.stepNumber }}</span>
+                    <p class="step-instruction-text">{{ stepItem.step.instruction }}</p>
+                  </div>
+
+                  <!-- Inline Scaled Ingredient Callouts -->
+                  @if (stepItem.ingredientCallouts.length > 0) {
+                    <div class="step-callouts-strip">
+                      <span class="callout-label">Used in this step:</span>
+                      <div class="callout-chips">
+                        @for (callout of stepItem.ingredientCallouts; track callout.id) {
+                          <span class="ingredient-callout-pill">
+                            <mat-icon class="callout-icon">restaurant</mat-icon>
+                            <span>{{ callout.label }}</span>
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Step Timers -->
+                  @if (stepItem.step.timers.length > 0) {
+                    <div class="step-timers-strip">
+                      @for (timer of stepItem.step.timers; track timer.id) {
+                        <div class="timer-badge">
+                          <mat-icon class="timer-icon">timer</mat-icon>
+                          <span class="timer-duration">{{
+                            formatTimerDuration(timer.durationSeconds)
+                          }}</span>
+                          <span class="timer-label">· {{ timer.label }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ol>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

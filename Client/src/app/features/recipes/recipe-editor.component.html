@@ -1,0 +1,555 @@
+<div class="recipe-editor-page">
+  <!-- Top Navigation & Actions Bar -->
+  <div class="editor-header">
+    <div class="header-titles">
+      <a
+        mat-button
+        [routerLink]="isEdit() ? ['/recipes', recipeId()!] : ['/recipes']"
+        class="back-link"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        <span>{{ isEdit() ? 'Cancel Edit' : 'Cookbook' }}</span>
+      </a>
+      <h1 class="page-title">{{ isEdit() ? 'Edit Recipe' : 'New Recipe' }}</h1>
+    </div>
+
+    <div class="header-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="onSave()"
+        [disabled]="isSaving()"
+        aria-label="Save recipe"
+      >
+        @if (isSaving()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <span class="btn-inner">
+            <mat-icon>save</mat-icon>
+            <span>Save Recipe</span>
+          </span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="editor-error-banner" role="alert">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading recipe...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" class="editor-form" (ngSubmit)="onSave()">
+      <!-- SECTION 1: Recipe Metadata Card -->
+      <mat-card class="editor-section-card">
+        <h2 class="card-section-title">
+          <mat-icon>info</mat-icon>
+          <span>Recipe Basics</span>
+        </h2>
+
+        <div class="form-grid">
+          <!-- Title -->
+          <mat-form-field appearance="outline" class="col-span-full">
+            <mat-label>Recipe Title</mat-label>
+            <input
+              matInput
+              formControlName="title"
+              placeholder="e.g. Grandma's Sunday Lasagna"
+              required
+              autocomplete="off"
+            />
+            @if (form.controls.title.hasError('required')) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Status -->
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="Published">Published</mat-option>
+              <mat-option value="DraftReview">Draft / In Review</mat-option>
+              <mat-option value="Archived">Archived</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Difficulty -->
+          <mat-form-field appearance="outline">
+            <mat-label>Difficulty</mat-label>
+            <mat-select formControlName="difficulty">
+              <mat-option value="Easy">Easy</mat-option>
+              <mat-option value="Medium">Medium</mat-option>
+              <mat-option value="Project">Project</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Base Servings -->
+          <mat-form-field appearance="outline">
+            <mat-label>Base Servings</mat-label>
+            <input
+              matInput
+              type="number"
+              step="0.5"
+              min="0.25"
+              max="999"
+              formControlName="baseServings"
+              required
+            />
+          </mat-form-field>
+
+          <!-- Yield Display -->
+          <mat-form-field appearance="outline">
+            <mat-label>Yield Description</mat-label>
+            <input
+              matInput
+              formControlName="yieldDisplay"
+              placeholder="e.g. 1 9x13 pan, 24 cookies"
+            />
+          </mat-form-field>
+
+          <!-- Prep Time -->
+          <mat-form-field appearance="outline">
+            <mat-label>Prep Time (min)</mat-label>
+            <input matInput type="number" min="0" formControlName="prepTimeMinutes" />
+          </mat-form-field>
+
+          <!-- Cook Time -->
+          <mat-form-field appearance="outline">
+            <mat-label>Cook Time (min)</mat-label>
+            <input matInput type="number" min="0" formControlName="cookTimeMinutes" />
+          </mat-form-field>
+
+          <!-- Total Time (Optional override) -->
+          <mat-form-field appearance="outline">
+            <mat-label>Total Time (min, optional)</mat-label>
+            <input matInput type="number" min="0" formControlName="totalTimeMinutes" />
+            <mat-hint>Auto-computed from prep + cook if blank</mat-hint>
+          </mat-form-field>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="col-span-full">
+            <mat-label>Description / Flavor Notes</mat-label>
+            <textarea
+              matInput
+              rows="2"
+              formControlName="description"
+              placeholder="A brief overview of the recipe, origins, or flavor profile"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Collapsible Provenance / Source Info -->
+        <mat-expansion-panel class="provenance-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon class="panel-icon">auto_stories</mat-icon>
+              <span>Source & Provenance (Optional)</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Source Name</mat-label>
+              <input
+                matInput
+                formControlName="sourceName"
+                placeholder="e.g. The Food Lab, NYT Cooking"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Author / Chef</mat-label>
+              <input
+                matInput
+                formControlName="sourceAuthor"
+                placeholder="e.g. J. Kenji López-Alt"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="col-span-full">
+              <mat-label>Source URL</mat-label>
+              <input matInput formControlName="sourceUrl" placeholder="https://..." />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Cookbook Title</mat-label>
+              <input matInput formControlName="sourceBookTitle" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Page Number</mat-label>
+              <input matInput type="number" min="1" formControlName="sourceBookPage" />
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+      </mat-card>
+
+      <!-- SECTION 2: Ingredients Builder Card -->
+      <mat-card class="editor-section-card">
+        <div class="card-section-header">
+          <h2 class="card-section-title">
+            <mat-icon>format_list_bulleted</mat-icon>
+            <span>Ingredients ({{ ingredientsArray.length }})</span>
+          </h2>
+
+          <button mat-stroked-button color="primary" type="button" (click)="addIngredient()">
+            <mat-icon>add</mat-icon>
+            <span>Add Ingredient</span>
+          </button>
+        </div>
+
+        <div formArrayName="ingredients" class="builder-list">
+          @for (ingGroup of ingredientsArray.controls; track $index) {
+            <div [formGroupName]="$index" class="builder-item-card">
+              <!-- Item Header & Controls -->
+              <div class="builder-item-top">
+                <span class="item-order-pill">#{{ $index + 1 }}</span>
+
+                <!-- Mode Selector (Food Item vs Sub-Recipe) -->
+                <mat-checkbox formControlName="isSubRecipe" class="mode-checkbox">
+                  Sub-Recipe Component
+                </mat-checkbox>
+
+                <div class="item-reorder-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveIngredientUp($index)"
+                    [disabled]="$index === 0"
+                    aria-label="Move ingredient up"
+                  >
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveIngredientDown($index)"
+                    [disabled]="$index === ingredientsArray.length - 1"
+                    aria-label="Move ingredient down"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    (click)="removeIngredient($index)"
+                    aria-label="Remove ingredient"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Row: Quantity, Unit, Food/SubRecipe Item, Display Name -->
+              <div class="ingredient-fields-grid">
+                <!-- Section Name -->
+                <mat-form-field appearance="outline" class="field-section">
+                  <mat-label>Section (Optional)</mat-label>
+                  <input matInput formControlName="sectionName" placeholder="e.g. Sauce, Crust" />
+                </mat-form-field>
+
+                <!-- Quantity -->
+                <mat-form-field appearance="outline" class="field-qty">
+                  <mat-label>Quantity</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    step="0.125"
+                    min="0"
+                    formControlName="quantity"
+                    placeholder="e.g. 1.5"
+                  />
+                </mat-form-field>
+
+                <!-- Max Quantity (Optional range) -->
+                <mat-form-field appearance="outline" class="field-qty">
+                  <mat-label>Max Qty (Range)</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    step="0.125"
+                    min="0"
+                    formControlName="maxQuantity"
+                    placeholder="e.g. 2"
+                  />
+                </mat-form-field>
+
+                <!-- Unit -->
+                <mat-form-field appearance="outline" class="field-unit">
+                  <mat-label>Unit</mat-label>
+                  <mat-select formControlName="unit">
+                    <mat-option [value]="null">-- None / Count --</mat-option>
+                    @for (u of measurementUnits; track u.value) {
+                      <mat-option [value]="u.value">{{ u.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Custom Unit Name if Unit is Custom -->
+                @if (ingGroup.get('unit')?.value === 'Custom') {
+                  <mat-form-field appearance="outline" class="field-custom-unit">
+                    <mat-label>Custom Unit Name</mat-label>
+                    <input
+                      matInput
+                      formControlName="customUnitName"
+                      placeholder="e.g. can, bunch"
+                      required
+                    />
+                  </mat-form-field>
+                }
+
+                <!-- Food Item Link (when NOT Sub-Recipe) -->
+                @if (!ingGroup.get('isSubRecipe')?.value) {
+                  <mat-form-field appearance="outline" class="field-food-link">
+                    <mat-label>Link to Food Catalog Item</mat-label>
+                    <mat-select
+                      formControlName="foodItemId"
+                      (selectionChange)="onFoodItemSelected($index, $event.value)"
+                    >
+                      <mat-option [value]="null">-- Not Linked --</mat-option>
+                      @for (food of foodItems(); track food.id) {
+                        <mat-option [value]="food.id">{{ food.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  <!-- Sub-Recipe Link (when Sub-Recipe) -->
+                  <mat-form-field appearance="outline" class="field-food-link">
+                    <mat-label>Select Sub-Recipe</mat-label>
+                    <mat-select
+                      formControlName="linkedRecipeId"
+                      (selectionChange)="onSubRecipeSelected($index, $event.value)"
+                    >
+                      <mat-option [value]="null">-- Select Sub-Recipe --</mat-option>
+                      @for (sub of availableSubRecipes(); track sub.id) {
+                        <mat-option [value]="sub.id">{{ sub.title }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                }
+
+                <!-- Display Name -->
+                <mat-form-field appearance="outline" class="field-display-name">
+                  <mat-label>Display Name</mat-label>
+                  <input
+                    matInput
+                    formControlName="displayName"
+                    placeholder="e.g. Yellow Onion"
+                    required
+                  />
+                  @if (
+                    !ingGroup.get('foodItemId')?.value &&
+                    !ingGroup.get('isSubRecipe')?.value &&
+                    ingGroup.get('displayName')?.value
+                  ) {
+                    <button
+                      mat-button
+                      matSuffix
+                      type="button"
+                      class="create-inline-btn"
+                      (click)="
+                        openCreateFoodItemForIngredient($index, ingGroup.get('displayName')?.value)
+                      "
+                      matTooltip="Add to Food Catalog"
+                    >
+                      + Catalog
+                    </button>
+                  }
+                </mat-form-field>
+
+                <!-- Preparation Note -->
+                <mat-form-field appearance="outline" class="field-prep">
+                  <mat-label>Preparation Note</mat-label>
+                  <input
+                    matInput
+                    formControlName="preparationNote"
+                    placeholder="e.g. diced finely, toasted"
+                  />
+                </mat-form-field>
+
+                <!-- Optional Checkbox -->
+                <div class="field-optional">
+                  <mat-checkbox formControlName="isOptional">Optional</mat-checkbox>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card>
+
+      <!-- SECTION 3: Steps Builder Card -->
+      <mat-card class="editor-section-card">
+        <div class="card-section-header">
+          <h2 class="card-section-title">
+            <mat-icon>menu_book</mat-icon>
+            <span>Instructions & Steps ({{ stepsArray.length }})</span>
+          </h2>
+
+          <button mat-stroked-button color="primary" type="button" (click)="addStep()">
+            <mat-icon>add</mat-icon>
+            <span>Add Step</span>
+          </button>
+        </div>
+
+        <div formArrayName="steps" class="builder-list">
+          @for (stepGroup of stepsArray.controls; track $index) {
+            <div [formGroupName]="$index" class="builder-item-card">
+              <!-- Step Header & Controls -->
+              <div class="builder-item-top">
+                <span class="step-number-badge">Step {{ $index + 1 }}</span>
+
+                <div class="item-reorder-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveStepUp($index)"
+                    [disabled]="$index === 0"
+                    aria-label="Move step up"
+                  >
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveStepDown($index)"
+                    [disabled]="$index === stepsArray.length - 1"
+                    aria-label="Move step down"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    (click)="removeStep($index)"
+                    aria-label="Remove step"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step Section (Optional) -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Section (Optional)</mat-label>
+                <input matInput formControlName="sectionName" placeholder="e.g. Prep, Baking" />
+              </mat-form-field>
+
+              <!-- Instruction Textarea -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Instruction</mat-label>
+                <textarea
+                  matInput
+                  rows="3"
+                  formControlName="instruction"
+                  placeholder="Describe this preparation or cooking step in detail..."
+                  required
+                ></textarea>
+              </mat-form-field>
+
+              <!-- Step Ingredients Callout Selector -->
+              @if (ingredientsArray.length > 0) {
+                <div class="step-ingredients-selector">
+                  <span class="sub-label">Select ingredients called out in this step:</span>
+                  <div class="callout-checkboxes">
+                    @for (ing of ingredientsArray.controls; track $index; let ingIdx = $index) {
+                      <mat-checkbox
+                        [checked]="stepGroup.get('ingredientIndices')?.value?.includes(ingIdx)"
+                        (change)="toggleStepIngredientCallout($index, ingIdx)"
+                        class="callout-check"
+                      >
+                        {{ ing.get('displayName')?.value || 'Ingredient #' + (ingIdx + 1) }}
+                      </mat-checkbox>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Step Timers Builder -->
+              <div class="step-timers-section">
+                <div class="timers-header">
+                  <span class="sub-label">Step Timers:</span>
+                  <button
+                    mat-button
+                    type="button"
+                    (click)="addTimerToStep($index)"
+                    class="add-timer-btn"
+                  >
+                    <mat-icon>timer</mat-icon>
+                    <span>Add Timer</span>
+                  </button>
+                </div>
+
+                <div formArrayName="timers" class="timers-list">
+                  @for (
+                    tGroup of getTimersArray($index).controls;
+                    track $index;
+                    let tIdx = $index
+                  ) {
+                    <div [formGroupName]="tIdx" class="timer-row">
+                      <mat-form-field appearance="outline" class="timer-field-mins">
+                        <mat-label>Minutes</mat-label>
+                        <input matInput type="number" min="0" formControlName="minutes" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="timer-field-secs">
+                        <mat-label>Seconds</mat-label>
+                        <input matInput type="number" min="0" max="59" formControlName="seconds" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="timer-field-label">
+                        <mat-label>Timer Label</mat-label>
+                        <input
+                          matInput
+                          formControlName="label"
+                          placeholder="e.g. Simmer sauce, Rest dough"
+                          required
+                        />
+                      </mat-form-field>
+
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        (click)="removeTimerFromStep($index, tIdx)"
+                        aria-label="Remove timer"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card>
+
+      <!-- Bottom Save Action Bar -->
+      <div class="form-bottom-actions">
+        <a mat-button [routerLink]="isEdit() ? ['/recipes', recipeId()!] : ['/recipes']">
+          Cancel
+        </a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="18"></mat-spinner>
+          } @else {
+            <span class="btn-inner">
+              <mat-icon>save</mat-icon>
+              <span>Save Recipe</span>
+            </span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

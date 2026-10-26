@@ -27,6 +27,4 @@ public sealed class User : IAuditable
     public DateTimeOffset ModifiedAt { get; set; }
 
     public string ModifiedBy { get; set; } = "System";
-
-    public ICollection<TodoItem> TodoItems { get; set; } = new List<TodoItem>();
 }

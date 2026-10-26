@@ -45,7 +45,8 @@ To save maximum tokens during the **Execution Phase**, the plan **MUST** specify
   - C# `record` DTOs, Request validation attributes, and `I*Service` method signatures in `App.Core`.
   - Exact EF Core migration name to run (`dotnet ef migrations add <MigrationName> --project Data/App.Data.csproj`).
 - **Exact API Endpoints:** HTTP verbs, relative route paths, query parameters, status codes, and authorization/ownership enforcement rules (keeping controllers thin HTTP adapters).
-- **Exact Angular Client Specs:** TypeScript model interfaces, `@Service()` methods, external `.ts`/`.html`/`.scss` component files, routes, signals/computed properties, and `360px` mobile + desktop layout requirements.
+- **Exact Angular Client Specs:** TypeScript model interfaces, `@Service()` methods, dedicated per-component folders under `features/<feature>/<component>/` with external `.ts`/`.html`/`.scss` files, routes, signals/computed properties, and `360px` mobile + desktop layout requirements.
+- **Exact Playwright E2E Test Scenarios:** For any phase with UI deliverables, define Section 5 specifying dedicated test class `<Feature>E2ETests.cs` in `Tests/Client.E2ETests/` inheriting from `E2ETestBase` with explicit `[TestMethod]` scenarios covering happy path user journeys, interactive dialogs/filters, calculations, and `360px` mobile viewport responsiveness.
 - **Ordered Execution Checklist (`- [ ]`):** Broken into sequential tasks (`Backend Core & Data` $\rightarrow$ `API & Integration Tests` $\rightarrow$ `Angular Client & Spec Tests` $\rightarrow$ `Playwright E2E & Final Format/Verify`) with exact test commands to run after each task.
 
 ### 5. Commit the Plan onto the Phase Branch & Present for Approval

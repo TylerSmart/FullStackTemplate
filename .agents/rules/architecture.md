@@ -18,9 +18,9 @@ When implementing a new feature across the stack, follow the established vertica
 4. **`Client/src/app/` (`App.Client`)**:
    - Add TypeScript interfaces in `core/models/<feature>.models.ts`.
    - Add `@Service()` HTTP service in `core/services/<feature>/<feature>.service.ts` using `apiUrl('/<feature-kebab>')`.
-   - Add standalone feature components under `features/<feature>/` using separate `.ts`, `.html`, and `.scss` files, and register lazy routes in `app.routes.ts`.
+   - Add standalone feature components under `features/<feature>/<component>/` (each component in its own dedicated kebab-case folder) using separate `.ts`, `.html`, and `.scss` files, and register lazy routes in `app.routes.ts`.
 5. **Automated Tests & Verification Loop (Required on Every Implementation)**:
-   - Add/update `.NET` Unit Tests (`Tests/Core.UnitTests` / `Tests/Infrastructure.UnitTests`), `.NET` API Integration Tests (`Tests/API.IntegrationTests` via `AppWebApplicationFactory`), Angular `.spec.ts` unit tests, and Playwright E2E tests (`Tests/Client.E2ETests` for end-to-end user flows).
+   - Add/update `.NET` Unit Tests (`Tests/Core.UnitTests` / `Tests/Infrastructure.UnitTests`), `.NET` API Integration Tests (`Tests/API.IntegrationTests` via `AppWebApplicationFactory`), Angular `.spec.ts` unit tests, and **dedicated Playwright E2E Tests** (`Tests/Client.E2ETests/<Feature>E2ETests.cs` inheriting from `E2ETestBase` for user journeys, dialogs, and `360px` mobile viewports).
    - Run all relevant builds, linters, and test suites; fix any errors and re-run until everything compiles and passes cleanly.
 
 ---

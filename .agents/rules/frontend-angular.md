@@ -1,9 +1,11 @@
 # Frontend (Angular 22) Conventions
 
 ## 1. Angular v22 Core Rules
-- **Component File Structure (Strict External Files Rule):**
-  - **NEVER** use inline `template: \`...\`` or inline `styles: \`...\`` inside `@Component({...})`.
-  - Always separate HTML templates and SCSS styles into dedicated sibling files: `<name>.component.html` and `<name>.component.scss`.
+- **Component Directory & File Structure (Strict Per-Component Folder Rule):**
+  - **Dedicated Component Directory:** Every Angular component **MUST** reside in its own individual directory named after the component in kebab-case (e.g., `features/recipes/recipe-detail/`, `features/recipes/recipe-list/`, `features/food-catalog/food-catalog/`, `shared/components/confirm-dialog/`).
+  - **NEVER** place multiple components flat inside a parent feature folder or place a component flat alongside child component directories. (Exceptions: root `src/app/app.component.*` and upstream template `src/app/features/auth/login.component.*` for template sync).
+  - **Dedicated External Files:** Inside each component directory, always separate HTML templates, SCSS styles, and tests into dedicated sibling files: `<name>.component.ts`, `<name>.component.html`, `<name>.component.scss`, and `<name>.component.spec.ts`.
+  - **NEVER** use inline `template: '...'` or inline `styles: '...'` inside `@Component({...})`.
   - Always specify `templateUrl: './<name>.component.html'` and `styleUrl: './<name>.component.scss'` in `@Component({...})`.
 - **Standalone & OnPush:**
   - Do **NOT** set `standalone: true` in `@Component` or `@Directive` decorators (default in Angular v20+).

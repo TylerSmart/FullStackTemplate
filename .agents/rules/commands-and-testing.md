@@ -9,7 +9,13 @@ On **every** code implementation, you MUST:
    - **Backend Unit Tests:** `Tests/Core.UnitTests` & `Tests/Infrastructure.UnitTests` for domain/service/infrastructure logic.
    - **API Integration Tests:** `Tests/API.IntegrationTests` (using `AppWebApplicationFactory`) for every new or modified controller endpoint, auth rule, or permission boundary.
    - **Frontend Unit Tests:** `.spec.ts` files in `Client/` for new/updated services, components, guards, and interceptors.
-   - **Playwright E2E Tests:** `Tests/Client.E2ETests` for end-to-end user-facing feature flows (run full browser E2E once both UI and API slices are ready).
+   - **Playwright E2E Tests:** `Tests/Client.E2ETests` for end-to-end user-facing feature flows:
+     - Tests inherit from `E2ETestBase` and connect to `AssemblyInitializer.ServerUrl` (a background API child process serving `Client/dist/App.Client/browser` with in-memory DB).
+     - Configured with `[assembly: DoNotParallelize]` for deterministic, reliable browser execution.
+     - Every phase delivering or updating user-facing UI **MUST** implement dedicated E2E tests in `Tests/Client.E2ETests/<Feature>E2ETests.cs` validating:
+       1. Core user journeys and authenticated CRUD flows.
+       2. Interactive dialogs, filters, toggles, and calculations.
+       3. Mobile responsive behavior at `360px` viewport width.
 2. **Execute & Fix Until Green:**
    - Build the full solution and run all relevant linters and test suites—not only targeted single-file tests—after every implementation iteration.
    - Diagnose, fix, and re-run iteratively until **all** builds, linters, and tests pass cleanly.
@@ -35,7 +41,7 @@ dotnet test --project Tests/Infrastructure.UnitTests/App.Infrastructure.UnitTest
 # Run API integration tests (uses EF Core InMemory DB via AppWebApplicationFactory — no Docker required!)
 dotnet test --project Tests/API.IntegrationTests/App.API.IntegrationTests.csproj
 
-# Run Playwright E2E tests (build Client first if E2E fixture serves Client/dist/App.Client/browser)
+# Run Playwright E2E tests (build Client first: npm run build:production in Client/)
 dotnet test --project Tests/Client.E2ETests/App.Client.E2ETests.csproj
 ```
 

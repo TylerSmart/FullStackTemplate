@@ -46,12 +46,21 @@
 ### 4.1 Models & Services (`src/app/core/`)
 - Exact files in `core/models/<feature>.models.ts` and `core/services/<feature>/<feature>.service.ts`.
 
-### 4.2 Feature Components & Routes (`src/app/features/<feature>/`)
-- Component hierarchy (strictly separate `.ts`, `.html`, `.scss` files), signals (`signal()`, `computed()`), dialogs, Material Symbols icons, and responsive mobile (`360px`) vs. desktop behavior.
+### 4.2 Feature Components & Routes (`src/app/features/<feature>/<component>/`)
+- Component hierarchy with dedicated per-component directories (strictly separate `.ts`, `.html`, `.scss` files), signals (`signal()`, `computed()`), dialogs, Material Symbols icons, and responsive mobile (`360px`) vs. desktop behavior.
 
 ---
 
-## 5. Step-by-Step Execution Checklist (For Implementation Agent)
+## 5. Playwright E2E Test Scenarios (`Tests/Client.E2ETests/<Feature>E2ETests.cs`)
+
+List required E2E test methods extending `E2ETestBase`:
+- `[TestMethod] <Feature>_UserJourney_CreateAndVerifyInUI()`: User registers/logs in, performs core action, verifies UI updates.
+- `[TestMethod] <Feature>_InteractiveFeatures_FiltersDialogsAndCalculations()`: Interacts with filters, dialogs, or calculations.
+- `[TestMethod] <Feature>_MobileViewport_360px_RendersCorrectly()`: Resizes to `360x640` and verifies mobile navigation/layout.
+
+---
+
+## 6. Step-by-Step Execution Checklist (For Implementation Agent)
 
 - [ ] **Task 1: Backend Core & Data Layer**
   - Create/update Core models, interfaces, Entities, EF Configurations, `AppDbContext`, and Data Services.
@@ -76,7 +85,7 @@
     ```
 
 - [ ] **Task 3: Angular Client & Unit Tests**
-  - Create TypeScript models, `@Service()` API services, external-template feature components, and route registrations.
+  - Create TypeScript models, `@Service()` API services, dedicated per-component feature components (`features/<feature>/<component>/`), and route registrations.
   - Write/update `.spec.ts` unit tests for services and components.
   - Run frontend lint, production build, and unit tests until 100% green:
     ```powershell
@@ -87,7 +96,11 @@
     ```
 
 - [ ] **Task 4: Playwright E2E Verification & Final Formatting**
-  - Add/update E2E test coverage in `Tests/Client.E2ETests/` if user-facing flows changed.
+  - Implement dedicated Playwright E2E test suite in `Tests/Client.E2ETests/<Feature>E2ETests.cs` implementing all scenarios from Section 5.
+  - Run Playwright E2E tests:
+    ```powershell
+    dotnet test --project Tests/Client.E2ETests/App.Client.E2ETests.csproj
+    ```
   - Format all backend and frontend files:
     ```powershell
     dotnet csharpier format .
@@ -95,4 +108,5 @@
     npm run format
     npm run lint:fix
     ```
+  - Run full solution test suite (`dotnet test App.slnx`).
   - Mark this plan's status as `[x] Completed`.

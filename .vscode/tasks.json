@@ -2,6 +2,23 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "infra: ensure",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/ensure-local-infra.ps1"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "client: start",
       "type": "shell",
       "command": "npm start",
@@ -31,6 +48,7 @@
       "label": "api: build",
       "command": "dotnet",
       "type": "process",
+      "dependsOn": "infra: ensure",
       "args": [
         "build",
         "${workspaceFolder}/API/App.API.csproj",
@@ -38,6 +56,45 @@
         "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "api: watch",
+      "type": "process",
+      "command": "dotnet",
+      "isBackground": true,
+      "dependsOn": "infra: ensure",
+      "args": [
+        "watch",
+        "run",
+        "--non-interactive",
+        "--project",
+        "${workspaceFolder}/API/App.API.csproj",
+        "--launch-profile",
+        "http"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/API",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
+        }
+      },
+      "problemMatcher": {
+        "owner": "dotnet-watch",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*dotnet watch.*$",
+          "endsPattern": "^.*Now listening on:\\s+https?:\\/\\/\\S+.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      }
     }
   ]
 }

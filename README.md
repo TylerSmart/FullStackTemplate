@@ -7,7 +7,7 @@
 
 > [!IMPORTANT]
 > **Starting a new project from this template?**
-> Follow the **[Template Usage & Project Rename Guide](docs/template-usage.md)** for a single PowerShell script and step-by-step instructions to rename `FullStackTemplate` (`full-stack-template`, `fullstacktemplate`) to your new project's name and automatically assign a **randomized external host port** so your deployed apps never collide on your NAS.
+> Follow the **[Template Usage Guide](docs/template-usage.md)** to customize branding and assign a **randomized external host port**, and see **[Syncing Upstream Template Changes](docs/template-sync.md)** to merge future template updates into forks.
 
 ---
 
@@ -17,7 +17,7 @@
   - Local email/password registration & login with PBKDF2-SHA256 password hashing and JWT bearer tokens.
   - External OIDC / OAuth 2.0 support (Google, Authentik, Keycloak, Microsoft Entra ID) with automatic account linking and user provisioning via `DualBearerAuthenticationHandler`.
 - **Clean Architecture & EF Core Data Layer**:
-  - Separated into `.API`, `.Core`, `.Data`, and `.Infrastructure` projects.
+  - Separated into `API`, `Core`, `Data`, and `Infrastructure` projects (`App.*` namespaces).
   - Automatic startup database creation & schema migration (`db.Database.Migrate()`).
   - Automatic `CreatedAt`/`CreatedBy`/`ModifiedAt`/`ModifiedBy` auditing via `IAuditable` and `AuditSaveChangesInterceptor`.
 - **Dynamic Material 3 Theming**:
@@ -108,7 +108,8 @@ Open `http://localhost:62949` (or your project's randomized host port) in your w
 
 All documentation is organized in the [`docs/`](docs/) directory using consistent `kebab-case` naming:
 
-- 🧩 **[Template Usage & Rename Guide](docs/template-usage.md)** — How to fork/use this template, rename `FullStackTemplate` to your new project name, and auto-assign a randomized host port.
+- 🧩 **[Template Usage Guide](docs/template-usage.md)** — How to create a new project from this template, customize branding, and assign a randomized host port.
+- 🔄 **[Syncing Upstream Template Changes](docs/template-sync.md)** — How to merge upstream template updates into downstream forks with `./scripts/merge-template.ps1`.
 - 🐳 **[Production Docker Deployment Guide](docs/deployment/docker-deployment.md)** — Step-by-step production deployment with reverse proxies (Nginx, Caddy, Traefik, Cloudflare Tunnel), automated backups, and environment tuning.
 - 🚀 **[TrueNAS Scale Deployment Guide](docs/deployment/truenas-scale.md)** — Native Docker Compose setup for TrueNAS Scale (Electric Eel 24.10+) and Dragonfish (24.04), ZFS datasets, and automated snapshots.
 - 🔐 **[OIDC & SSO Authentication Guide](docs/deployment/oidc-authentication.md)** — Configure Single Sign-On with Google OAuth 2.0, Authentik, Keycloak, or Microsoft Entra ID.

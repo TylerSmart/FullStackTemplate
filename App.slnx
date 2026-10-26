@@ -2,6 +2,7 @@
   <Folder Name="/Documentation/">
     <File Path="README.md" />
     <File Path="docs/template-usage.md" />
+    <File Path="docs/template-sync.md" />
     <File Path="docs/contributing.md" />
     <File Path="docs/deployment/docker-deployment.md" />
     <File Path="docs/deployment/oidc-authentication.md" />

@@ -9,5 +9,11 @@ public class ConflictException(string message, string title = "Conflict") : Exce
     public string Title { get; } = title;
 }
 
+public class DomainValidationException(string message, string title = "Validation failed")
+    : Exception(message)
+{
+    public string Title { get; } = title;
+}
+
 public class NotFoundException(string message = "The requested resource was not found.")
     : Exception(message);

@@ -155,7 +155,8 @@
           </ng-template>
           <div class="palette-tab-content">
             <p class="tab-description">
-              Controls accent highlights, tags, contrast badges, and complementary board indicators.
+              Controls accent highlights, tags, contrast badges, and complementary status
+              indicators.
             </p>
             <div class="swatches-grid" role="radiogroup" aria-label="Tertiary color palette">
               @for (palette of palettes; track palette.id) {
@@ -231,12 +232,12 @@
       </div>
       <div class="preview-card" [style.font-family]="themeService.fontFamilyDef().fontFamily">
         <div class="preview-header">
-          <span class="preview-heading">Collaborative Diagram Board</span>
+          <span class="preview-heading">{{ appName }} Workspace</span>
           <span class="preview-chip tertiary-chip">Active Session</span>
         </div>
         <p class="preview-body">
-          Diagramming in real-time with your custom Material 3 theme. Fast, responsive, and
-          beautifully styled.
+          Working seamlessly with your custom Material 3 theme. Fast, responsive, and beautifully
+          styled across light and dark modes.
         </p>
         <div class="preview-actions">
           <button type="button" class="preview-btn primary-btn">

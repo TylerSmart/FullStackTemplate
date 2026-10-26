@@ -51,6 +51,10 @@
           <span class="user-menu-email">{{ authService.currentUser()?.email }}</span>
         </div>
         <mat-divider></mat-divider>
+        <button mat-menu-item (click)="accountService.openAccountSettingsDialog()">
+          <mat-icon>manage_accounts</mat-icon>
+          <span>Account Settings</span>
+        </button>
         <button mat-menu-item (click)="onLogout()">
           <mat-icon>logout</mat-icon>
           <span>Log Out</span>

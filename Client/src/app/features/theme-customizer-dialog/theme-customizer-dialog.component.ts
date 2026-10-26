@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { APP_NAME } from '../../app.branding';
 import {
   COLOR_PALETTES,
   FONT_OPTIONS,
@@ -14,20 +14,13 @@ import {
 
 @Component({
   selector: 'app-theme-customizer-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatTooltipModule, MatTabsModule],
   templateUrl: './theme-customizer-dialog.component.html',
-  styleUrls: ['./theme-customizer-dialog.component.scss'],
+  styleUrl: './theme-customizer-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeCustomizerDialogComponent {
+  readonly appName = APP_NAME;
   readonly themeService = inject(ThemeService);
   private readonly dialogRef = inject(MatDialogRef<ThemeCustomizerDialogComponent>);
 

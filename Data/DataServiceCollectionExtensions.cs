@@ -1,3 +1,4 @@
+using App.Core.Account;
 using App.Core.Authentication;
 using App.Core.Todos;
 using App.Data.Auditing;
@@ -20,6 +21,7 @@ public static class DataServiceCollectionExtensions
 
         services.AddScoped<AuditSaveChangesInterceptor>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITodoService, TodoService>();
 
         if (

@@ -14,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { APP_BRAND_ICON, APP_NAME } from '../../app.branding';
 import { TodoItemDto } from '../../core/models/todo.models';
+import { AccountService } from '../../core/services/account/account.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { ThemeMode, ThemeService } from '../../core/services/theme/theme.service';
 import { TodoService } from '../../core/services/todo/todo.service';
@@ -57,6 +58,7 @@ const THEME_LABELS: Record<ThemeMode, string> = {
 export class DashboardComponent implements OnInit {
   protected readonly appName = APP_NAME;
   protected readonly brandIcon = APP_BRAND_ICON;
+  protected readonly accountService = inject(AccountService);
   protected readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   private readonly todoService = inject(TodoService);

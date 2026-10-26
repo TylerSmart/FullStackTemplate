@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { TodoItemDto } from '../../core/models/todo.models';
+import { AccountService } from '../../core/services/account/account.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { ThemeService } from '../../core/services/theme/theme.service';
 import { TodoService } from '../../core/services/todo/todo.service';
@@ -41,6 +42,10 @@ describe('DashboardComponent', () => {
   let mockAuthService: {
     currentUser: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
+  };
+
+  let mockAccountService: {
+    openAccountSettingsDialog: ReturnType<typeof vi.fn>;
   };
 
   let mockDialog: {
@@ -82,6 +87,10 @@ describe('DashboardComponent', () => {
       logout: vi.fn(),
     };
 
+    mockAccountService = {
+      openAccountSettingsDialog: vi.fn(),
+    };
+
     mockDialog = {
       open: vi.fn(),
     };
@@ -95,6 +104,7 @@ describe('DashboardComponent', () => {
       providers: [
         { provide: TodoService, useValue: mockTodoService },
         { provide: AuthService, useValue: mockAuthService },
+        { provide: AccountService, useValue: mockAccountService },
         { provide: MatDialog, useValue: mockDialog },
         { provide: MatSnackBar, useValue: mockSnackBar },
         ThemeService,
@@ -137,6 +147,11 @@ describe('DashboardComponent', () => {
   it('should call logout on AuthService', () => {
     component.onLogout();
     expect(mockAuthService.logout).toHaveBeenCalled();
+  });
+
+  it('should open Account Settings dialog via AccountService', () => {
+    component['accountService'].openAccountSettingsDialog();
+    expect(mockAccountService.openAccountSettingsDialog).toHaveBeenCalled();
   });
 
   it('should delete task when confirmed', () => {
